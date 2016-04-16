@@ -35,7 +35,7 @@
 // Wiegand 26 decoder
 
 typedef uint8_t Wiegand_Channel_Number;
-typedef uint32_t Wiegand_Card_Number;
+typedef uint32_t Wiegand_CardNumberTypeDef;
 
 typedef struct {
 	Wiegand_Channel_Number channels_number;
@@ -44,7 +44,7 @@ typedef struct {
 
 void Wiegand_Config(WiegandInitTypeDef *init_config);
 void Wiegand_HandleTransmission(Wiegand_Channel_Number channel, uint8_t bit);
-__weak void Wiegand_Callback(Wiegand_Channel_Number channel_id, Wiegand_Card_Number card_number);
+__weak void Wiegand_Callback(Wiegand_Channel_Number channel_id, Wiegand_CardNumberTypeDef card_number);
 void Wiegand_SysTickHandler(void);
 
 #endif /* APPLICATION_USER_WIEGAND_H_ */
