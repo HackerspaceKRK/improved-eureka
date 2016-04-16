@@ -1,0 +1,43 @@
+PCBNEW-LibModule-V1  pon, 23 lut 2015, 15:11:19
+# encoding utf-8
+Units mm
+$INDEX
+bornier2
+$EndINDEX
+$MODULE bornier2
+Po 0 0 0 15 3EC0ED69 00000000 ~~
+Li bornier2
+Cd Bornier d'alimentation 2 pins
+Kw DEV
+Sc 0
+AR /54E4987F
+Op 0 0 0
+T0 0 -5.08 1.524 1.524 0 0.3048 N V 21 N "P_A0"
+T1 0 5.08 1.524 1.524 0 0.3048 N V 21 N "CONN_2"
+DS 5.08 2.54 -5.08 2.54 0.3048 21
+DS 5.08 3.81 5.08 -3.81 0.3048 21
+DS 5.08 -3.81 -5.08 -3.81 0.3048 21
+DS -5.08 -3.81 -5.08 3.81 0.3048 21
+DS -5.08 3.81 5.08 3.81 0.3048 21
+$PAD
+Sh "1" R 2.54 2.54 0 0 0
+Dr 1.524 0 0
+At STD N 00E0FFFF
+Ne 1 "GND"
+Po -2.54 0
+$EndPAD
+$PAD
+Sh "2" C 2.54 2.54 0 0 0
+Dr 1.524 0 0
+At STD N 00E0FFFF
+Ne 2 "N-0000025"
+Po 2.54 0
+$EndPAD
+$SHAPE3D
+Na "device/bornier_2.wrl"
+Sc 1 1 1
+Of 0 0 0
+Ro 0 0 0
+$EndSHAPE3D
+$EndMODULE bornier2
+$EndLIBRARY
