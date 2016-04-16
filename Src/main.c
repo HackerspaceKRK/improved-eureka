@@ -57,7 +57,6 @@ static void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN 0 */
 
-
 /* USER CODE END 0 */
 
 int main(void)
@@ -171,9 +170,9 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pins : D1_4_Pin D0_4_Pin D1_3_Pin D0_2_Pin 
-                           D1_1_Pin D0_6_Pin D0_6C12_Pin */
+                           D1_1_Pin D1_6_Pin D0_6_Pin */
   GPIO_InitStruct.Pin = D1_4_Pin|D0_4_Pin|D1_3_Pin|D0_2_Pin 
-                          |D1_1_Pin|D0_6_Pin|D0_6C12_Pin;
+                          |D1_1_Pin|D1_6_Pin|D0_6_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);

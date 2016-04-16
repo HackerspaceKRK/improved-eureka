@@ -112,10 +112,10 @@
 #define SWCLK_GPIO_Port GPIOA
 #define BUZZER_4_Pin GPIO_PIN_15
 #define BUZZER_4_GPIO_Port GPIOA
-#define D0_6_Pin GPIO_PIN_11
+#define D1_6_Pin GPIO_PIN_11
+#define D1_6_GPIO_Port GPIOC
+#define D0_6_Pin GPIO_PIN_12
 #define D0_6_GPIO_Port GPIOC
-#define D0_6C12_Pin GPIO_PIN_12
-#define D0_6C12_GPIO_Port GPIOC
 #define BUZZER_3_Pin GPIO_PIN_2
 #define BUZZER_3_GPIO_Port GPIOD
 #define BUZZER_2_Pin GPIO_PIN_3
