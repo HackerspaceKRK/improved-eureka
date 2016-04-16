@@ -35,6 +35,8 @@
 
 /* USER CODE BEGIN Includes */
 
+#include "wiegand.h"
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -56,6 +58,15 @@ static void MX_USART1_UART_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+
+static void Wiegand_Init(void)
+{
+	WiegandInitTypeDef WiegandInitStruct;
+	WiegandInitStruct.channels_number = 6;
+	WiegandInitStruct.check_parity = 1;
+
+	Wiegand_Config(&WiegandInitStruct);
+}
 
 /* USER CODE END 0 */
 
@@ -79,6 +90,8 @@ int main(void)
   MX_USART1_UART_Init();
 
   /* USER CODE BEGIN 2 */
+
+  Wiegand_Init();
 
   /* USER CODE END 2 */
 
@@ -265,13 +278,13 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(BUZZER_3_GPIO_Port, BUZZER_3_Pin, GPIO_PIN_RESET);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI0_1_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(EXTI0_1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI2_3_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(EXTI2_3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI2_3_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 }
