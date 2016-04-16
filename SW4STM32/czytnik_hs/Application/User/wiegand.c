@@ -30,10 +30,10 @@ typedef struct {
 	uint8_t last_read_timer;
 } Wiegand_ChannelTypeDef;
 
-volatile static Wiegand_ChannelTypeDef *wiegand_channels = 0;
+volatile static Wiegand_ChannelTypeDef wiegand_channels[WIEGAND_MAX_CHANNELS];
 volatile static WiegandInitTypeDef wiegand_config;
 
-static void Wiegand_Channel_Init_Struct(Wiegand_ChannelTypeDef *channel, Wiegand_Channel_Number number)
+static void Wiegand_Channel_InitStruct(Wiegand_ChannelTypeDef *channel, Wiegand_Channel_Number number)
 {
 	channel->number = number;
 	channel->position = 0;
@@ -59,15 +59,15 @@ void Wiegand_Config(WiegandInitTypeDef *init_config)
 {
 	int i = 0;
 
-	wiegand_channels = (void*) malloc(sizeof(Wiegand_ChannelTypeDef) * init_config->channels_number);
-	assert(wiegand_channels > 0);
+//	wiegand_channels = (void*) malloc(sizeof(Wiegand_ChannelTypeDef) * init_config->channels_number);
+	assert(init_config->channels_number < WIEGAND_MAX_CHANNELS);
 
 	wiegand_config.channels_number = init_config->channels_number;
 	wiegand_config.check_parity = init_config->check_parity;
 
 	for(i = 0; i < init_config->channels_number; i++)
 	{
-		Wiegand_Channel_Init_Struct(Wiegand_Channel_Get(i), i);
+		Wiegand_Channel_InitStruct(Wiegand_Channel_Get(i), i);
 	}
 }
 
@@ -107,11 +107,16 @@ static uint8_t Wiegand_Channel_IsValid(Wiegand_ChannelTypeDef *channel)
 	return 1;
 }
 
+static Wiegand_Card_Number Wiegand_Channel_StripParityBits(Wiegand_ChannelTypeDef *channel)
+{
+	return channel->buffer & ~(1 | (1<<channel->position));
+}
+
 static void Wiegand_Channel_Call(Wiegand_ChannelTypeDef *channel)
 {
 	if(Wiegand_Channel_IsValid(channel))
 	{
-		Wiegand_Callback(channel->number, channel->buffer);
+		Wiegand_Callback(channel->number, Wiegand_Channel_StripParityBits(channel));
 	}
 }
 
@@ -123,7 +128,7 @@ static void Wiegand_Channel_Run(Wiegand_ChannelTypeDef *channel)
 }
 
 // called from interrupt
-void Wiegand_Handle_Transmission(Wiegand_Channel_Number channel_id, uint8_t bit)
+void Wiegand_HandleTransmission(Wiegand_Channel_Number channel_id, uint8_t bit)
 {
 	if(wiegand_channels == 0)
 	{
@@ -142,7 +147,7 @@ void Wiegand_Handle_Transmission(Wiegand_Channel_Number channel_id, uint8_t bit)
 }
 
 // called from interrupt
-void Wiegand_SysTick_Handler(void)
+void Wiegand_SysTickHandler(void)
 {
 	int i = 0;
 

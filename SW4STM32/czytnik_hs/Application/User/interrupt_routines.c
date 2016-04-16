@@ -83,10 +83,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	uint8_t channel_id = GPIO_To_Wiegand_Channel(GPIO_Pin);
 	uint8_t bit = GPIO_To_Wiegand_Bit(GPIO_Pin);
 
-	Wiegand_Handle_Transmission(channel_id, bit);
+	Wiegand_HandleTransmission(channel_id, bit);
 }
 
 void HAL_SYSTICK_Callback(void)
 {
-	Wiegand_SysTick_Handler();
+	Wiegand_SysTickHandler();
 }
