@@ -65,7 +65,7 @@ void Wiegand_Config(WiegandInitTypeDef *init_config)
 	wiegand_config.channels_number = init_config->channels_number;
 	wiegand_config.check_parity = init_config->check_parity;
 
-	for(; i < init_config->channels_number; i++)
+	for(i = 0; i < init_config->channels_number; i++)
 	{
 		Wiegand_Channel_Init_Struct(Wiegand_Channel_Get(i), i);
 	}
@@ -78,7 +78,33 @@ static uint8_t Wiegand_Channel_IsValid(Wiegand_ChannelTypeDef *channel)
 		return 1;
 	}
 
-	return 1; // TODO: check parity!
+	uint8_t parity_0 = channel->buffer & (1<<0);
+	uint8_t parity_e = channel->buffer & (1<<channel->position);
+
+	uint8_t parity_calc = 0;
+
+	// calculate parity of first half (skipping parity bit itself)
+	int i;
+	for(i = 1; i < channel->position/2; i++)
+	{
+		parity_calc ^= (channel->buffer & (1<<i)); // parity_calc XOR channel->buffer.Bit(i)
+	}
+
+	if(parity_0 != parity_calc)
+		return 0;
+
+	parity_calc = 0;
+
+	// calculate parity of second half (skipping parity bit itself)
+	for(; i < channel->position-1; i++)
+	{
+		parity_calc ^= (channel->buffer & (1<<i)); // parity_calc XOR channel->buffer.Bit(i)
+	}
+
+	if(parity_e != parity_calc)
+		return 0;
+
+	return 1;
 }
 
 static void Wiegand_Channel_Call(Wiegand_ChannelTypeDef *channel)
@@ -120,7 +146,7 @@ void Wiegand_SysTick_Handler(void)
 {
 	int i = 0;
 
-	for(; i < wiegand_config.channels_number; i++)
+	for(i = 0; i < wiegand_config.channels_number; i++)
 	{
 		Wiegand_ChannelTypeDef *channel = Wiegand_Channel_Get(i);
 
