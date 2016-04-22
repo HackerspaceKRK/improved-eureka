@@ -30,6 +30,7 @@ typedef struct {
 	uint32_t last_read_timer;
 } Wiegand_ChannelTypeDef;
 
+volatile static uint8_t wiegand_configured = 0;
 volatile static Wiegand_ChannelTypeDef wiegand_channels[WIEGAND_MAX_CHANNELS];
 volatile static WiegandInitTypeDef wiegand_config;
 
@@ -69,6 +70,8 @@ void Wiegand_Config(WiegandInitTypeDef *init_config)
 	{
 		Wiegand_Channel_InitStruct(Wiegand_Channel_Get(i), i);
 	}
+
+	wiegand_configured = 1;
 }
 
 static uint8_t Wiegand_Parity_Calc(Wiegand_CardNumberTypeDef bitstream, uint8_t from, uint8_t len)
@@ -119,7 +122,7 @@ static uint8_t Wiegand_Channel_IsValid(Wiegand_ChannelTypeDef *channel)
 
 static Wiegand_CardNumberTypeDef Wiegand_Channel_StripParityBits(Wiegand_ChannelTypeDef *channel)
 {
-	return (channel->buffer & (~(1<<channel->position-1)))>>1;
+	return (channel->buffer & (~(1<<(channel->position)-1)))>>1;
 }
 
 static void Wiegand_Channel_Call(Wiegand_ChannelTypeDef *channel)
@@ -140,7 +143,7 @@ static void Wiegand_Channel_Run(Wiegand_ChannelTypeDef *channel)
 // called from interrupt
 void Wiegand_HandleTransmission(Wiegand_Channel_Number channel_id, uint8_t bit)
 {
-	if(wiegand_channels == 0)
+	if(! wiegand_configured)
 	{
 		return;
 	}
@@ -159,6 +162,11 @@ void Wiegand_HandleTransmission(Wiegand_Channel_Number channel_id, uint8_t bit)
 // called from interrupt
 void Wiegand_SysTickHandler(void)
 {
+	if(! wiegand_configured)
+	{
+		return;
+	}
+
 	int i;
 
 	for(i = 0; i < wiegand_config.channels_number; i++)
