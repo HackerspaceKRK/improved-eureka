@@ -27,7 +27,7 @@ typedef struct {
 	Wiegand_Channel_Number number;
 	uint8_t position;
 	Wiegand_CardNumberTypeDef buffer;
-	uint8_t last_read_timer;
+	uint32_t last_read_timer;
 } Wiegand_ChannelTypeDef;
 
 volatile static Wiegand_ChannelTypeDef wiegand_channels[WIEGAND_MAX_CHANNELS];
@@ -57,7 +57,7 @@ static Wiegand_ChannelTypeDef *Wiegand_Channel_Get(Wiegand_Channel_Number id)
 
 void Wiegand_Config(WiegandInitTypeDef *init_config)
 {
-	int i = 0;
+	int i;
 
 //	wiegand_channels = (void*) malloc(sizeof(Wiegand_ChannelTypeDef) * init_config->channels_number);
 	assert(init_config->channels_number < WIEGAND_MAX_CHANNELS);
@@ -80,13 +80,13 @@ static uint8_t Wiegand_Parity_Calc(Wiegand_CardNumberTypeDef bitstream, uint8_t 
 
 	while(i < len)
 	{
-		calc_parity ^= bitstream;
+		calc_parity ^= (uint8_t) bitstream & 1;
 
 		bitstream >>= 1;
 		i++;
 	}
 
-	return calc_parity & 1;
+	return calc_parity;
 }
 
 static uint8_t Wiegand_Channel_IsValid(Wiegand_ChannelTypeDef *channel)
@@ -96,37 +96,37 @@ static uint8_t Wiegand_Channel_IsValid(Wiegand_ChannelTypeDef *channel)
 		return 1;
 	}
 
-	uint8_t parity_0 = channel->buffer & 1;
-	uint8_t parity_e = (channel->buffer>>(channel->position-1)) & 1;
-
 	uint8_t parity_calc;
 	uint8_t bitstream_length = channel->position - 2; // length of data bits (len-2 parity bits)
 	uint8_t bitstream_length_2 = bitstream_length/2;
 
-	parity_calc = Wiegand_Parity_Calc(channel->buffer, 1, bitstream_length_2);
+	parity_calc = Wiegand_Parity_Calc(channel->buffer, 0, bitstream_length_2+1);
 
-	if(parity_calc != parity_0)
+	if(parity_calc != 0)
+	{
 		return 0;
+	}
 
-	parity_calc = Wiegand_Parity_Calc(channel->buffer, bitstream_length_2, bitstream_length_2);
+	parity_calc = Wiegand_Parity_Calc(channel->buffer, bitstream_length_2+1, bitstream_length_2+1);
 
-	if(parity_calc != parity_e)
+	if(parity_calc != 1)
+	{
 		return 0;
-
+	}
 
 	return 1;
 }
 
 static Wiegand_CardNumberTypeDef Wiegand_Channel_StripParityBits(Wiegand_ChannelTypeDef *channel)
 {
-	return 1>>(channel->buffer & ~(1<<(channel->position-1)));
+	return (channel->buffer & (~(1<<channel->position-1)))>>1;
 }
 
 static void Wiegand_Channel_Call(Wiegand_ChannelTypeDef *channel)
 {
 	if(Wiegand_Channel_IsValid(channel))
 	{
-		Wiegand_Callback(channel->number, Wiegand_Channel_StripParityBits(channel));
+		Wiegand_Callback(channel->number, channel->position, Wiegand_Channel_StripParityBits(channel));
 	}
 }
 
@@ -146,7 +146,7 @@ void Wiegand_HandleTransmission(Wiegand_Channel_Number channel_id, uint8_t bit)
 	}
 
 	Wiegand_ChannelTypeDef *channel = Wiegand_Channel_Get(channel_id);
-	channel->buffer |= (bit << channel->position);
+	channel->buffer |= bit << channel->position;
 	channel->position++;
 	channel->last_read_timer = 0;
 
@@ -159,7 +159,7 @@ void Wiegand_HandleTransmission(Wiegand_Channel_Number channel_id, uint8_t bit)
 // called from interrupt
 void Wiegand_SysTickHandler(void)
 {
-	int i = 0;
+	int i;
 
 	for(i = 0; i < wiegand_config.channels_number; i++)
 	{
@@ -173,7 +173,7 @@ void Wiegand_SysTickHandler(void)
 	}
 }
 
-__weak void Wiegand_Callback(Wiegand_Channel_Number channel_id, Wiegand_CardNumberTypeDef card_number)
+__weak void Wiegand_Callback(Wiegand_Channel_Number channel_id, uint8_t channel_position, Wiegand_CardNumberTypeDef card_number)
 {
 	// Will be overridden by user
 }

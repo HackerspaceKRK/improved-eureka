@@ -27,10 +27,10 @@
 //#define WIEGAND_DYNAMIC_CHANNELS
 
 // does not apply when WIEGAND_DYNAMIC_CHANNELS is enabled
-#define WIEGAND_MAX_CHANNELS 6
+#define WIEGAND_MAX_CHANNELS 7
 
 #define WIEGAND_MAX_LENGTH 26
-#define WIEGAND_SYSTICKS_TIMEOUT 2000
+#define WIEGAND_SYSTICKS_TIMEOUT 3
 
 // Wiegand 26 decoder
 
@@ -44,7 +44,7 @@ typedef struct {
 
 void Wiegand_Config(WiegandInitTypeDef *init_config);
 void Wiegand_HandleTransmission(Wiegand_Channel_Number channel, uint8_t bit);
-__weak void Wiegand_Callback(Wiegand_Channel_Number channel_id, Wiegand_CardNumberTypeDef card_number);
+__weak void Wiegand_Callback(Wiegand_Channel_Number channel_id, uint8_t channel_position, Wiegand_CardNumberTypeDef card_number);
 void Wiegand_SysTickHandler(void);
 
 #endif /* APPLICATION_USER_WIEGAND_H_ */

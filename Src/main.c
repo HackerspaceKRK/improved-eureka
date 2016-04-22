@@ -93,6 +93,7 @@ int main(void)
 
   Wiegand_Init();
 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -102,6 +103,13 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+
+	  HAL_Delay(1000);
+
+	//HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+
+	HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
+	//HAL_GPIO_TogglePin(BUZZER_0_GPIO_Port, BUZZER_0_Pin);
 
   }
   /* USER CODE END 3 */
