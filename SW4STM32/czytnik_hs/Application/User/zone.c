@@ -20,7 +20,10 @@
 
 #include <assert.h>
 
+#include "stm32f0xx_hal.h"
+
 #include "zone.h"
+#include "gpio_mapper.h"
 
 volatile static uint8_t zone_configured = 0;
 volatile static Zone_InitConfigTypeDef zone_config;
@@ -76,16 +79,39 @@ void Zone_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wie
 	}
 }
 
-static void Zone_Process_Timers(Zone_ChannelTypeDef *channel)
+static void Zone_Process_Timers(uint8_t channel_id)
 {
+	Zone_ChannelTypeDef *channel = Zone_Channel_Get(channel_id);
+
 	if(channel->beep_timer)
+	{
 		channel->beep_timer--;
+		GPIO_Write_Channel(channel_id, GPIO_MAPPER_BUZZER, GPIO_PIN_SET);
+	}
+	else
+	{
+		GPIO_Write_Channel(channel_id, GPIO_MAPPER_BUZZER, GPIO_PIN_RESET);
+	}
 
 	if(channel->led_timer)
+	{
 		channel->led_timer--;
+		GPIO_Write_Channel(channel_id, GPIO_MAPPER_LED, GPIO_PIN_SET);
+	}
+	else
+	{
+		GPIO_Write_Channel(channel_id, GPIO_MAPPER_LED, GPIO_PIN_RESET);
+	}
 
 	if(channel->open_timer)
+	{
 		channel->open_timer--;
+		GPIO_Write_Channel(channel_id, GPIO_MAPPER_OPEN, GPIO_PIN_SET);
+	}
+	else
+	{
+		GPIO_Write_Channel(channel_id, GPIO_MAPPER_OPEN, GPIO_PIN_RESET);
+	}
 }
 
 // called from interrupt
@@ -101,8 +127,6 @@ void Zone_SysTickHandler()
 	for (i = 0; i < zone_config.channels; ++i) {
 		Zone_ChannelTypeDef *channel = Zone_Channel_Get(i);
 
-		Zone_Process_Timers(channel);
-
-
+		Zone_Process_Timers(i);
 	}
 }
