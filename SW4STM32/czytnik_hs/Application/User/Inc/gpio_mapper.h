@@ -18,27 +18,13 @@
 
 */
 
-#include <stdint.h>
+#ifndef APPLICATION_USER_INC_GPIO_MAPPER_H_
+#define APPLICATION_USER_INC_GPIO_MAPPER_H_
 
-#include "wiegand.h"
 #include "stm32f0xx_hal.h"
-#include "gpio_mapper.h"
-#include "zone.h"
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	uint8_t channel_id = GPIO_To_Wiegand_Channel(GPIO_Pin);
-	uint8_t bit = GPIO_To_Wiegand_Bit(GPIO_Pin);
+static uint8_t GPIO_To_Wiegand_Channel(uint16_t GPIO_Pin);
+static uint8_t GPIO_To_Wiegand_Bit(uint16_t GPIO_Pin);
 
-	Wiegand_HandleTransmission(channel_id, bit);
-}
 
-void HAL_SYSTICK_Callback(void)
-{
-	Wiegand_SysTickHandler();
-}
-
-void Wiegand_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
-{
-	Zone_Callback(channel_id, length, card_number);
-}
+#endif /* APPLICATION_USER_INC_GPIO_MAPPER_H_ */

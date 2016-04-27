@@ -111,6 +111,8 @@ int main(void)
 	HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
 	//HAL_GPIO_TogglePin(BUZZER_0_GPIO_Port, BUZZER_0_Pin);
 
+	Wiegand_Process();
+
   }
   /* USER CODE END 3 */
 

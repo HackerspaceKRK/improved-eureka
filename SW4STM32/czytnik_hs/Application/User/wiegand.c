@@ -23,32 +23,44 @@
 
 #include "wiegand.h"
 
-typedef struct {
-	Wiegand_Channel_Number number;
+typedef struct
+{
+	Wiegand_Channel_NumberTypeDef number;
 	uint8_t position;
 	Wiegand_CardNumberTypeDef buffer;
 	uint32_t last_read_timer;
+
+	uint8_t ready;
+	uint8_t ready_clear;
+	uint8_t called;
 } Wiegand_ChannelTypeDef;
 
 volatile static uint8_t wiegand_configured = 0;
 volatile static Wiegand_ChannelTypeDef wiegand_channels[WIEGAND_MAX_CHANNELS];
 volatile static WiegandInitTypeDef wiegand_config;
 
-static void Wiegand_Channel_InitStruct(Wiegand_ChannelTypeDef *channel, Wiegand_Channel_Number number)
+static void Wiegand_Channel_InitStruct(Wiegand_ChannelTypeDef *channel, Wiegand_Channel_NumberTypeDef number)
 {
 	channel->number = number;
 	channel->position = 0;
 	channel->buffer = 0;
 	channel->last_read_timer = 0;
+	channel->ready = 0;
+	channel->ready_clear = 0;
+
+	channel->called = 0;
 }
 
 static void Wiegand_Channel_Clear(Wiegand_ChannelTypeDef *channel)
 {
 	channel->position = 0;
 	channel->buffer = 0;
+
+	channel->ready = 0;
+	channel->ready_clear = 0;
 }
 
-static Wiegand_ChannelTypeDef *Wiegand_Channel_Get(Wiegand_Channel_Number id)
+static Wiegand_ChannelTypeDef *Wiegand_Channel_Get(Wiegand_Channel_NumberTypeDef id)
 {
 	assert(id < wiegand_config.channels_number);
 
@@ -133,15 +145,8 @@ static void Wiegand_Channel_Call(Wiegand_ChannelTypeDef *channel)
 	}
 }
 
-
-static void Wiegand_Channel_Run(Wiegand_ChannelTypeDef *channel)
-{
-	Wiegand_Channel_Call(channel);
-	Wiegand_Channel_Clear(channel);
-}
-
 // called from interrupt
-void Wiegand_HandleTransmission(Wiegand_Channel_Number channel_id, uint8_t bit)
+void Wiegand_HandleTransmission(Wiegand_Channel_NumberTypeDef channel_id, uint8_t bit)
 {
 	if(! wiegand_configured)
 	{
@@ -149,14 +154,20 @@ void Wiegand_HandleTransmission(Wiegand_Channel_Number channel_id, uint8_t bit)
 	}
 
 	Wiegand_ChannelTypeDef *channel = Wiegand_Channel_Get(channel_id);
-	channel->buffer |= bit << channel->position;
-	channel->position++;
-	channel->last_read_timer = 0;
+
+	if(channel->ready || channel->ready_clear) // when there is unread data on that channel
+	{
+		return;
+	}
 
 	if(channel->position >= WIEGAND_MAX_LENGTH)
 	{
-		Wiegand_Channel_Run(channel);
+		return;
 	}
+
+	channel->buffer |= bit << channel->position;
+	channel->position++;
+	channel->last_read_timer = 0;
 }
 
 // called from interrupt
@@ -173,15 +184,52 @@ void Wiegand_SysTickHandler(void)
 	{
 		Wiegand_ChannelTypeDef *channel = Wiegand_Channel_Get(i);
 
-		if(channel->position > 0 &&
-				channel->last_read_timer++ > WIEGAND_SYSTICKS_TIMEOUT)
+
+		if(channel->ready_clear) // channel is ready to be recycled
 		{
-			Wiegand_Channel_Run(channel);
+			Wiegand_Channel_Clear(channel);
+			continue;
+		}
+
+		if(channel->ready) // there is some unprocessed data, ignore this channel
+		{
+			continue;
+		}
+
+		if(channel->position) // channel is active
+		{
+			if(channel->last_read_timer++ > WIEGAND_SYSTICKS_TIMEOUT) // data timeout ++
+			{
+				channel->ready = 1;
+			}
 		}
 	}
 }
 
-__weak void Wiegand_Callback(Wiegand_Channel_Number channel_id, uint8_t channel_position, Wiegand_CardNumberTypeDef card_number)
+
+void Wiegand_Process(void)
+{
+	if(! wiegand_configured)
+	{
+		return;
+	}
+
+	int i;
+
+	for(i = 0; i < wiegand_config.channels_number; i++)
+	{
+		Wiegand_ChannelTypeDef *channel = Wiegand_Channel_Get(i);
+
+		if(channel->ready && !channel->ready_clear)
+		{
+			Wiegand_Channel_Call(channel);
+
+			channel->ready_clear = 1;
+		}
+	}
+}
+
+__weak void Wiegand_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
 {
 	// Will be overridden by user
 }

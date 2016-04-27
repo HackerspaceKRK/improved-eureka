@@ -18,27 +18,58 @@
 
 */
 
-#include <stdint.h>
-
-#include "wiegand.h"
 #include "stm32f0xx_hal.h"
-#include "gpio_mapper.h"
-#include "zone.h"
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+uint8_t GPIO_To_Wiegand_Channel(uint16_t GPIO_Pin)
 {
-	uint8_t channel_id = GPIO_To_Wiegand_Channel(GPIO_Pin);
-	uint8_t bit = GPIO_To_Wiegand_Bit(GPIO_Pin);
+	switch(GPIO_Pin)
+	{
+	case D0_0_Pin:
+	case D1_0_Pin:
+		return 0;
 
-	Wiegand_HandleTransmission(channel_id, bit);
+	case D0_1_Pin:
+	case D1_1_Pin:
+		return 1;
+
+	case D0_2_Pin:
+	case D1_2_Pin:
+		return 2;
+
+	case D0_3_Pin:
+	case D1_3_Pin:
+		return 3;
+
+	case D0_4_Pin:
+	case D1_4_Pin:
+		return 4;
+
+	case D0_5_Pin:
+	case D1_5_Pin:
+		return 5;
+
+	case D0_6_Pin:
+	case D1_6_Pin:
+		return 6;
+	default:
+		return 0;
+	}
 }
 
-void HAL_SYSTICK_Callback(void)
+// TODO: optimize this
+uint8_t GPIO_To_Wiegand_Bit(uint16_t GPIO_Pin)
 {
-	Wiegand_SysTickHandler();
-}
-
-void Wiegand_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
-{
-	Zone_Callback(channel_id, length, card_number);
+	switch(GPIO_Pin)
+	{
+	case D0_0_Pin:
+	case D0_1_Pin:
+	case D0_2_Pin:
+	case D0_3_Pin:
+	case D0_4_Pin:
+	case D0_5_Pin:
+	case D0_6_Pin:
+		return 0;
+	default:
+		return 1;
+	}
 }
