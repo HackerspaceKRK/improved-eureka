@@ -29,19 +29,27 @@ volatile static uint8_t zone_configured = 0;
 volatile static Zone_InitConfigTypeDef zone_config;
 volatile static Zone_ChannelTypeDef zone_channels[ZONE_MAX_CHANNELS];
 
-void Zone_Init(Zone_InitConfigTypeDef *config)
-{
-	assert(config->channels < ZONE_MAX_CHANNELS);
-
-	zone_config.channels = config->channels;
-	zone_configured = 1;
-}
-
 static Zone_ChannelTypeDef *Zone_Channel_Get(Wiegand_Channel_NumberTypeDef id)
 {
 	assert(id < zone_config.channels);
 
 	return (Zone_ChannelTypeDef *)&zone_channels[id]; // I know it discards volatile
+}
+
+void Zone_Init(Zone_InitConfigTypeDef *config)
+{
+	assert(config->channels < ZONE_MAX_CHANNELS);
+
+	int i;
+
+	for(i = 0; i < config->channels; ++i)
+	{
+		Zone_ChannelTypeDef *channel = Zone_Channel_Get(i);
+		channel->state = ZONE_STATE_NORMAL;
+	}
+
+	zone_config.channels = config->channels;
+	zone_configured = 1;
 }
 
 Zone_DataInputTypeDef *Zone_HasData()
@@ -51,21 +59,27 @@ Zone_DataInputTypeDef *Zone_HasData()
 
 void Zone_Accept(Wiegand_Channel_NumberTypeDef zone_number)
 {
+	Zone_ChannelTypeDef *channel = Zone_Channel_Get(zone_number);
 
+	channel->open_timer = ZONE_OPEN_TIMEOUT;
 }
 
 void Zone_Reject(Wiegand_Channel_NumberTypeDef zone_number)
 {
+	Zone_ChannelTypeDef *channel = Zone_Channel_Get(zone_number);
 
+	channel->beep_timer = ZONE_BEEP_TIMEOUT;
 }
 
+// TODO: Decide if this is even needed?
 void Zone_Block(Wiegand_Channel_NumberTypeDef zone_number)
 {
-
+	Zone_ChannelTypeDef *channel = Zone_Channel_Get(zone_number);
 }
 
 void Zone_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
 {
+
 	if(! zone_configured)
 	{
 		return;
@@ -77,6 +91,18 @@ void Zone_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wie
 	{
 		return;
 	}
+
+	// TODO: make nice api (Zone_Callback_KeyPress, Zone_Callback_CardRead)
+
+	if(length == 32)
+	{
+		Zone_Callback_CardRead(channel_id, length, card_number);
+	}
+}
+
+__weak void Zone_Callback_CardRead(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
+{
+//
 }
 
 static void Zone_Process_Timers(uint8_t channel_id)
@@ -125,8 +151,6 @@ void Zone_SysTickHandler()
 	int i;
 
 	for (i = 0; i < zone_config.channels; ++i) {
-		Zone_ChannelTypeDef *channel = Zone_Channel_Get(i);
-
 		Zone_Process_Timers(i);
 	}
 }

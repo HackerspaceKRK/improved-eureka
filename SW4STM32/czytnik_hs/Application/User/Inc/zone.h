@@ -69,4 +69,8 @@ void Zone_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wie
 void Zone_SysTickHandler(); // called from interrupt
 
 
+__weak void Zone_Callback_CardRead(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number);
+
+
+
 #endif /* APPLICATION_USER_INC_ZONE_H_ */

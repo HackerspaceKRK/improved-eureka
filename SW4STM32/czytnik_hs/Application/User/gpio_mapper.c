@@ -18,6 +18,8 @@
 
 */
 
+#include <assert.h>
+
 #include "stm32f0xx_hal.h"
 
 #include "gpio_mapper.h"
@@ -158,7 +160,7 @@ GPIO_TypeDef *GPIO_Port_ForChannel(uint8_t channel, GPIO_Mapper_DeviceTypeDef de
 	}
 }
 
-uint16_t *GPIO_Pin_ForChannel(uint8_t channel, GPIO_Mapper_DeviceTypeDef device)
+uint16_t GPIO_Pin_ForChannel(uint8_t channel, GPIO_Mapper_DeviceTypeDef device)
 {
 	assert(channel < GPIO_MAPPER_NUMBER_OF_CHANNELS);
 	assert(device < GPIO_MAPPER_DEVICE_NUM);

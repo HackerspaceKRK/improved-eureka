@@ -45,7 +45,7 @@ uint8_t GPIO_To_Wiegand_Bit(uint16_t GPIO_Pin);
 //uint16_t *GPIO_Open_Pin_ForChannel(uint8_t channel);
 
 GPIO_TypeDef *GPIO_Port_ForChannel(uint8_t channel_id, GPIO_Mapper_DeviceTypeDef device);
-uint16_t *GPIO_Pin_ForChannel(uint8_t channel_id, GPIO_Mapper_DeviceTypeDef device);
+uint16_t GPIO_Pin_ForChannel(uint8_t channel_id, GPIO_Mapper_DeviceTypeDef device);
 
 void GPIO_Write_Channel(uint8_t channel_id, GPIO_Mapper_DeviceTypeDef device, GPIO_PinState state);
 
