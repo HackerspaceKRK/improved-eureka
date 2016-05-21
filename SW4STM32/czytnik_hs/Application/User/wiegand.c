@@ -132,9 +132,14 @@ static uint8_t Wiegand_Channel_IsValid(Wiegand_ChannelTypeDef *channel)
 	return 1;
 }
 
+/**
+ * This quite magic function will shift 1 bit to right and zero-out
+ * last bit in message (removes parity bits from message)
+ */
 static Wiegand_CardNumberTypeDef Wiegand_Channel_StripParityBits(Wiegand_ChannelTypeDef *channel)
 {
-	return (channel->buffer & (~(1<<(channel->position)-1)))>>1;
+	Wiegand_CardNumberTypeDef mask = (~(1<<(channel->position)-1));
+	return (channel->buffer & mask)>>1;
 }
 
 static void Wiegand_Channel_Call(Wiegand_ChannelTypeDef *channel)

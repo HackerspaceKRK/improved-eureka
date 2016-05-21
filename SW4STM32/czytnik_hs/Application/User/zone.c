@@ -36,19 +36,23 @@ static Zone_ChannelTypeDef *Zone_Channel_Get(Wiegand_Channel_NumberTypeDef id)
 	return (Zone_ChannelTypeDef *)&zone_channels[id]; // I know it discards volatile
 }
 
-void Zone_Init(Zone_InitConfigTypeDef *config)
+static void Zone_Channel_InitStruct(Zone_ChannelTypeDef *channel)
+{
+	channel->state = ZONE_STATE_NORMAL;
+}
+
+void Zone_Config(Zone_InitConfigTypeDef *config)
 {
 	assert(config->channels < ZONE_MAX_CHANNELS);
 
-	int i;
+	zone_config.channels = config->channels;
 
+	int i;
 	for(i = 0; i < config->channels; ++i)
 	{
-		Zone_ChannelTypeDef *channel = Zone_Channel_Get(i);
-		channel->state = ZONE_STATE_NORMAL;
+		Zone_Channel_InitStruct(Zone_Channel_Get(i));
 	}
 
-	zone_config.channels = config->channels;
 	zone_configured = 1;
 }
 
@@ -77,6 +81,40 @@ void Zone_Block(Wiegand_Channel_NumberTypeDef zone_number)
 	Zone_ChannelTypeDef *channel = Zone_Channel_Get(zone_number);
 }
 
+#define ZONE_KEYPRESS_MAP_SIZE 15
+static const Wiegand_CardNumberTypeDef Zone_Keypress_Keymapping[ZONE_KEYPRESS_MAP_SIZE] = {
+		0, // 0
+		8, // 1
+		4, // 2
+		13, // 3 // F1
+		2, // 4
+		11, // 5 // *
+		6, // 6
+		0, // 7
+		1, // 8
+		9, // 9
+		5, // 10
+		14, // 11 // F2
+		3, // 12
+		12, // 13 // #
+		7, // 14
+};
+
+static Zone_Keypress_Key_TypeDef Zone_Resolve_KeyCode(Wiegand_CardNumberTypeDef card_number)
+{
+	// we could not use ASSERT here, or somebody will brick out system from remote :P
+	// assert(card_number < ZONE_KEYPRESS_MAP_SIZE);
+
+	if(card_number >= ZONE_KEYPRESS_MAP_SIZE)
+	{
+		return 0;
+	}
+
+	// RBIT would be useful here, but is not available on ARM Cortex-M0 :(
+	// we will do simple lookup table
+	return Zone_Keypress_Keymapping[card_number];
+}
+
 void Zone_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
 {
 
@@ -92,15 +130,27 @@ void Zone_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wie
 		return;
 	}
 
-	// TODO: make nice api (Zone_Callback_KeyPress, Zone_Callback_CardRead)
-
-	if(length == 32)
+	switch(length)
 	{
+	case ZONE_CARD_LENGTH:
 		Zone_Callback_CardRead(channel_id, length, card_number);
+		break;
+
+	case ZONE_KEYPRESS_LENGTH:
+		Zone_Callback_KeyPress(channel_id, Zone_Resolve_KeyCode(card_number));
+		break;
+
+	default:
+		break;
 	}
 }
 
 __weak void Zone_Callback_CardRead(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
+{
+//
+}
+
+__weak void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_Key_TypeDef key)
 {
 //
 }

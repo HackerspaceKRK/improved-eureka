@@ -36,6 +36,7 @@
 /* USER CODE BEGIN Includes */
 
 #include "wiegand.h"
+#include "zone.h"
 
 /* USER CODE END Includes */
 
@@ -68,6 +69,15 @@ static void Wiegand_Init(void)
 	Wiegand_Config(&WiegandInitStruct);
 }
 
+
+static void Zone_Init(void)
+{
+	Zone_InitConfigTypeDef ZoneInitStruct;
+	ZoneInitStruct.channels = 6;
+
+	Zone_Config(&ZoneInitStruct);
+}
+
 /* USER CODE END 0 */
 
 int main(void)
@@ -92,6 +102,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   Wiegand_Init();
+  Zone_Init();
 
 
   /* USER CODE END 2 */
@@ -106,9 +117,9 @@ int main(void)
 
 	  HAL_Delay(1000);
 
-	//HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+	HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 
-	HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
+	//HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
 	//HAL_GPIO_TogglePin(BUZZER_0_GPIO_Port, BUZZER_0_Pin);
 
 	Wiegand_Process();

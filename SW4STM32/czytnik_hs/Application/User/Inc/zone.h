@@ -29,6 +29,11 @@
 #define ZONE_BEEP_TIMEOUT 100
 #define ZONE_OPEN_TIMEOUT 1000
 
+#define ZONE_CARD_LENGTH  26
+#define ZONE_KEYPRESS_LENGTH 6
+
+typedef Wiegand_CardNumberTypeDef Zone_Keypress_Key_TypeDef;
+
 typedef struct
 {
 	Wiegand_Channel_NumberTypeDef channels;
@@ -56,7 +61,7 @@ typedef struct
 	uint16_t open_timer;
 } Zone_ChannelTypeDef;
 
-void Zone_Init(Zone_InitConfigTypeDef *config);
+void Zone_Config(Zone_InitConfigTypeDef *config);
 
 Zone_DataInputTypeDef *Zone_HasData();
 
@@ -70,7 +75,7 @@ void Zone_SysTickHandler(); // called from interrupt
 
 
 __weak void Zone_Callback_CardRead(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number);
-
+__weak void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_Key_TypeDef key);
 
 
 #endif /* APPLICATION_USER_INC_ZONE_H_ */
