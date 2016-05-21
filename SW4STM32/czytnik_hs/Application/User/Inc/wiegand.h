@@ -36,6 +36,7 @@
 
 typedef uint8_t Wiegand_Channel_NumberTypeDef;
 typedef uint32_t Wiegand_CardNumberTypeDef;
+#define Wiegand_CardNumberTypeDef_BITS_LENGTH 32
 
 typedef struct {
 	Wiegand_Channel_NumberTypeDef channels_number;

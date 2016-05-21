@@ -124,14 +124,14 @@ static uint8_t Wiegand_Channel_IsValid(Wiegand_ChannelTypeDef *channel)
 
 	parity_calc = Wiegand_Parity_Calc(channel->buffer, 0, bitstream_length_2+1);
 
-	if(parity_calc != 0)
+	if(parity_calc != 1)
 	{
 		return 0;
 	}
 
 	parity_calc = Wiegand_Parity_Calc(channel->buffer, bitstream_length_2+1, bitstream_length_2+1);
 
-	if(parity_calc != 1)
+	if(parity_calc != 0)
 	{
 		return 0;
 	}
@@ -177,7 +177,12 @@ void Wiegand_HandleTransmission(Wiegand_Channel_NumberTypeDef channel_id, uint8_
 		return;
 	}
 
-	channel->buffer |= bit << channel->position;
+	// tricky tricky...
+	// we would normally read it as is (bit << channel->position) but we will have to
+	// later reverse it.. normally this would not be a problem (RBIT operand) but
+	// we are on Cortex-M0... it is faster to do it this way.. later we will only
+	// have to align data to the right
+	channel->buffer |= bit << (Wiegand_CardNumberTypeDef_BITS_LENGTH-1 - channel->position);
 	channel->position++;
 	channel->last_read_timer = 0;
 }
@@ -234,6 +239,9 @@ void Wiegand_Process(void)
 
 		if(channel->ready && !channel->ready_clear)
 		{
+			// align data to right
+			channel->buffer >>= Wiegand_CardNumberTypeDef_BITS_LENGTH - channel->position;
+
 			Wiegand_Channel_Call(channel);
 
 			channel->ready_clear = 1;

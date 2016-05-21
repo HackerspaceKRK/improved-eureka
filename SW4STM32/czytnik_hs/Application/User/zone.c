@@ -75,40 +75,6 @@ void Zone_Reject(Wiegand_Channel_NumberTypeDef zone_number)
 	channel->beep_timer = ZONE_BEEP_TIMEOUT;
 }
 
-#define ZONE_KEYPRESS_MAP_SIZE 15
-static const Wiegand_CardNumberTypeDef Zone_Keypress_Keymapping[ZONE_KEYPRESS_MAP_SIZE] = {
-		0, // 0
-		8, // 1
-		4, // 2
-		13, // 3 // F1
-		2, // 4
-		11, // 5 // *
-		6, // 6
-		0, // 7
-		1, // 8
-		9, // 9
-		5, // 10
-		14, // 11 // F2
-		3, // 12
-		12, // 13 // #
-		7, // 14
-};
-
-static Zone_Keypress_KeyTypeDef Zone_Resolve_KeyCode(Wiegand_CardNumberTypeDef card_number)
-{
-	// we could not use ASSERT here, or somebody will brick our system from remote :P
-	// assert(card_number < ZONE_KEYPRESS_MAP_SIZE);
-
-	if(card_number >= ZONE_KEYPRESS_MAP_SIZE)
-	{
-		return 0;
-	}
-
-	// RBIT would be useful here, but is not available on ARM Cortex-M0 :(
-	// we will do simple lookup table
-	return Zone_Keypress_Keymapping[card_number];
-}
-
 void Zone_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
 {
 
@@ -131,7 +97,7 @@ void Zone_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wie
 		break;
 
 	case ZONE_KEYPRESS_LENGTH:
-		Zone_Callback_KeyPress(channel_id, Zone_Resolve_KeyCode(card_number));
+		Zone_Callback_KeyPress(channel_id, card_number);
 		break;
 
 	default:
