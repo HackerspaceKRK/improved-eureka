@@ -94,7 +94,7 @@ static const Wiegand_CardNumberTypeDef Zone_Keypress_Keymapping[ZONE_KEYPRESS_MA
 		7, // 14
 };
 
-static Zone_Keypress_Key_TypeDef Zone_Resolve_KeyCode(Wiegand_CardNumberTypeDef card_number)
+static Zone_Keypress_KeyTypeDef Zone_Resolve_KeyCode(Wiegand_CardNumberTypeDef card_number)
 {
 	// we could not use ASSERT here, or somebody will brick our system from remote :P
 	// assert(card_number < ZONE_KEYPRESS_MAP_SIZE);
@@ -144,7 +144,7 @@ __weak void Zone_Callback_CardRead(Wiegand_Channel_NumberTypeDef channel_id, uin
 //
 }
 
-__weak void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_Key_TypeDef key)
+__weak void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_KeyTypeDef key)
 {
 //
 }

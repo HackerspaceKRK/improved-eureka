@@ -32,7 +32,7 @@
 #define ZONE_CARD_LENGTH  26
 #define ZONE_KEYPRESS_LENGTH 6
 
-typedef Wiegand_CardNumberTypeDef Zone_Keypress_Key_TypeDef;
+typedef Wiegand_CardNumberTypeDef Zone_Keypress_KeyTypeDef;
 
 typedef struct
 {
@@ -76,7 +76,7 @@ void Zone_SysTickHandler(); // called from interrupt
 
 
 __weak void Zone_Callback_CardRead(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number);
-__weak void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_Key_TypeDef key);
+__weak void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_KeyTypeDef key);
 
 
 #endif /* APPLICATION_USER_INC_ZONE_H_ */

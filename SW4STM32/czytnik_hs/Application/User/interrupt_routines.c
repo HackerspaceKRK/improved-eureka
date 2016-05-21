@@ -43,3 +43,13 @@ void Wiegand_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, 
 {
 	Zone_Callback(channel_id, length, card_number);
 }
+
+void Zone_Callback_CardRead(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
+{
+
+}
+
+void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_KeyTypeDef key)
+{
+
+}
