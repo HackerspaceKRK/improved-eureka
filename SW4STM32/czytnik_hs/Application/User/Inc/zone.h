@@ -52,13 +52,15 @@ typedef struct
 	uint8_t length;
 } Zone_DataInputTypeDef;
 
+typedef uint16_t Zone_TimerTypeDef;
+
 typedef struct
 {
 	Zone_StateTypeDef state;
 
-	uint16_t led_timer;
-	uint16_t beep_timer;
-	uint16_t open_timer;
+	Zone_TimerTypeDef led_timer;
+	Zone_TimerTypeDef beep_timer;
+	Zone_TimerTypeDef open_timer;
 } Zone_ChannelTypeDef;
 
 void Zone_Config(Zone_InitConfigTypeDef *config);
@@ -67,7 +69,6 @@ Zone_DataInputTypeDef *Zone_HasData();
 
 void Zone_Accept(Wiegand_Channel_NumberTypeDef zone_number);
 void Zone_Reject(Wiegand_Channel_NumberTypeDef zone_number);
-void Zone_Block(Wiegand_Channel_NumberTypeDef zone_number);
 
 void Zone_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number);
 

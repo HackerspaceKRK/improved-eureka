@@ -43,7 +43,7 @@ static void Zone_Channel_InitStruct(Zone_ChannelTypeDef *channel)
 
 void Zone_Config(Zone_InitConfigTypeDef *config)
 {
-	assert(config->channels < ZONE_MAX_CHANNELS);
+	assert(config->channels <= ZONE_MAX_CHANNELS);
 
 	zone_config.channels = config->channels;
 
@@ -75,12 +75,6 @@ void Zone_Reject(Wiegand_Channel_NumberTypeDef zone_number)
 	channel->beep_timer = ZONE_BEEP_TIMEOUT;
 }
 
-// TODO: Decide if this is even needed?
-void Zone_Block(Wiegand_Channel_NumberTypeDef zone_number)
-{
-	Zone_ChannelTypeDef *channel = Zone_Channel_Get(zone_number);
-}
-
 #define ZONE_KEYPRESS_MAP_SIZE 15
 static const Wiegand_CardNumberTypeDef Zone_Keypress_Keymapping[ZONE_KEYPRESS_MAP_SIZE] = {
 		0, // 0
@@ -102,7 +96,7 @@ static const Wiegand_CardNumberTypeDef Zone_Keypress_Keymapping[ZONE_KEYPRESS_MA
 
 static Zone_Keypress_Key_TypeDef Zone_Resolve_KeyCode(Wiegand_CardNumberTypeDef card_number)
 {
-	// we could not use ASSERT here, or somebody will brick out system from remote :P
+	// we could not use ASSERT here, or somebody will brick our system from remote :P
 	// assert(card_number < ZONE_KEYPRESS_MAP_SIZE);
 
 	if(card_number >= ZONE_KEYPRESS_MAP_SIZE)
@@ -155,39 +149,27 @@ __weak void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zon
 //
 }
 
+static void Zone_Process_Timer(uint8_t channel_id, Zone_TimerTypeDef *timer, GPIO_Mapper_DeviceTypeDef type)
+{
+	if(*timer)
+	{
+		(*timer) --;
+
+		GPIO_Write_Channel(channel_id, type, GPIO_PIN_SET);
+	}
+	else
+	{
+		GPIO_Write_Channel(channel_id, type, GPIO_PIN_RESET);
+	}
+}
+
 static void Zone_Process_Timers(uint8_t channel_id)
 {
 	Zone_ChannelTypeDef *channel = Zone_Channel_Get(channel_id);
 
-	if(channel->beep_timer)
-	{
-		channel->beep_timer--;
-		GPIO_Write_Channel(channel_id, GPIO_MAPPER_BUZZER, GPIO_PIN_SET);
-	}
-	else
-	{
-		GPIO_Write_Channel(channel_id, GPIO_MAPPER_BUZZER, GPIO_PIN_RESET);
-	}
-
-	if(channel->led_timer)
-	{
-		channel->led_timer--;
-		GPIO_Write_Channel(channel_id, GPIO_MAPPER_LED, GPIO_PIN_SET);
-	}
-	else
-	{
-		GPIO_Write_Channel(channel_id, GPIO_MAPPER_LED, GPIO_PIN_RESET);
-	}
-
-	if(channel->open_timer)
-	{
-		channel->open_timer--;
-		GPIO_Write_Channel(channel_id, GPIO_MAPPER_OPEN, GPIO_PIN_SET);
-	}
-	else
-	{
-		GPIO_Write_Channel(channel_id, GPIO_MAPPER_OPEN, GPIO_PIN_RESET);
-	}
+	Zone_Process_Timer(channel_id, &channel->beep_timer, GPIO_MAPPER_BUZZER);
+	Zone_Process_Timer(channel_id, &channel->led_timer, GPIO_MAPPER_LED);
+	Zone_Process_Timer(channel_id, &channel->open_timer, GPIO_MAPPER_OPEN);
 }
 
 // called from interrupt

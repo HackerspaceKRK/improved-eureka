@@ -63,7 +63,7 @@ static void MX_USART1_UART_Init(void);
 static void Wiegand_Init(void)
 {
 	WiegandInitTypeDef WiegandInitStruct;
-	WiegandInitStruct.channels_number = 6;
+	WiegandInitStruct.channels_number = 7;
 	WiegandInitStruct.check_parity = 1;
 
 	Wiegand_Config(&WiegandInitStruct);
@@ -73,7 +73,7 @@ static void Wiegand_Init(void)
 static void Zone_Init(void)
 {
 	Zone_InitConfigTypeDef ZoneInitStruct;
-	ZoneInitStruct.channels = 6;
+	ZoneInitStruct.channels = 7;
 
 	Zone_Config(&ZoneInitStruct);
 }
@@ -115,7 +115,7 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 
-	  HAL_Delay(1000);
+	 // HAL_Delay(1000);
 
 	HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 
@@ -123,6 +123,8 @@ int main(void)
 	//HAL_GPIO_TogglePin(BUZZER_0_GPIO_Port, BUZZER_0_Pin);
 
 	Wiegand_Process();
+
+	__WFI();
 
   }
   /* USER CODE END 3 */

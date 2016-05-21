@@ -73,7 +73,7 @@ void Wiegand_Config(WiegandInitTypeDef *init_config)
 	int i;
 
 //	wiegand_channels = (void*) malloc(sizeof(Wiegand_ChannelTypeDef) * init_config->channels_number);
-	assert(init_config->channels_number < WIEGAND_MAX_CHANNELS);
+	assert(init_config->channels_number <= WIEGAND_MAX_CHANNELS);
 
 	wiegand_config.channels_number = init_config->channels_number;
 	wiegand_config.check_parity = init_config->check_parity;
@@ -111,6 +111,13 @@ static uint8_t Wiegand_Channel_IsValid(Wiegand_ChannelTypeDef *channel)
 		return 1;
 	}
 
+	// too short...
+	// (minimal message length 4 bits (2 bits of data and 2 parity)
+	if(channel->position < 4)
+	{
+		return 0;
+	}
+
 	uint8_t parity_calc;
 	uint8_t bitstream_length = channel->position - 2; // length of data bits (len-2 parity bits)
 	uint8_t bitstream_length_2 = bitstream_length/2;
@@ -138,7 +145,7 @@ static uint8_t Wiegand_Channel_IsValid(Wiegand_ChannelTypeDef *channel)
  */
 static Wiegand_CardNumberTypeDef Wiegand_Channel_StripParityBits(Wiegand_ChannelTypeDef *channel)
 {
-	Wiegand_CardNumberTypeDef mask = (~(1<<(channel->position)-1));
+	Wiegand_CardNumberTypeDef mask = (~(1<<(channel->position-1)));
 	return (channel->buffer & mask)>>1;
 }
 
