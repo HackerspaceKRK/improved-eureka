@@ -37,7 +37,7 @@ typedef Wiegand_CardNumberTypeDef Zone_Keypress_KeyTypeDef;
 typedef struct
 {
 	Wiegand_Channel_NumberTypeDef channels;
-} Zone_InitConfigTypeDef;
+} Zone_InitTypeDef;
 
 typedef enum
 {
@@ -63,9 +63,7 @@ typedef struct
 	Zone_TimerTypeDef open_timer;
 } Zone_ChannelTypeDef;
 
-void Zone_Config(Zone_InitConfigTypeDef *config);
-
-Zone_DataInputTypeDef *Zone_HasData();
+void Zone_Config(Zone_InitTypeDef *config);
 
 void Zone_Accept(Wiegand_Channel_NumberTypeDef zone_number);
 void Zone_Reject(Wiegand_Channel_NumberTypeDef zone_number);

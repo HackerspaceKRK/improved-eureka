@@ -156,6 +156,7 @@ GPIO_TypeDef *GPIO_Port_ForChannel(uint8_t channel, GPIO_Mapper_DeviceTypeDef de
 
 	default:
 		assert(0);
+		return 0; // never reached
 
 	}
 }
@@ -176,6 +177,7 @@ uint16_t GPIO_Pin_ForChannel(uint8_t channel, GPIO_Mapper_DeviceTypeDef device)
 
 	default:
 		assert(0);
+		return 0; // never reached
 
 	}
 }

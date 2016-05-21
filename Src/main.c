@@ -37,11 +37,14 @@
 
 #include "wiegand.h"
 #include "zone.h"
+#include "uart_controller.h"
 
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart1;
+DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -51,6 +54,7 @@ UART_HandleTypeDef huart1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
@@ -72,10 +76,18 @@ static void Wiegand_Init(void)
 
 static void Zone_Init(void)
 {
-	Zone_InitConfigTypeDef ZoneInitStruct;
+	Zone_InitTypeDef ZoneInitStruct;
 	ZoneInitStruct.channels = 7;
 
 	Zone_Config(&ZoneInitStruct);
+}
+
+static void UART_Controller_Init(void)
+{
+	UART_Controller_InitTypeDef UARTControllerInitStruct;
+	UARTControllerInitStruct.uart = &huart1;
+
+	UART_Controller_Config(&UARTControllerInitStruct);
 }
 
 /* USER CODE END 0 */
@@ -97,13 +109,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
 
   /* USER CODE BEGIN 2 */
 
   Wiegand_Init();
   Zone_Init();
-
+  UART_Controller_Init();
 
   /* USER CODE END 2 */
 
@@ -123,8 +136,9 @@ int main(void)
 	//HAL_GPIO_TogglePin(BUZZER_0_GPIO_Port, BUZZER_0_Pin);
 
 	Wiegand_Process();
+	UART_Controller_Process();
 
-	__WFI();
+//	__WFI();
 
   }
   /* USER CODE END 3 */
@@ -183,6 +197,21 @@ void MX_USART1_UART_Init(void)
   huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
   HAL_UART_Init(&huart1);
+
+}
+
+/** 
+  * Enable DMA controller clock
+  */
+void MX_DMA_Init(void) 
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel2_3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 
 }
 

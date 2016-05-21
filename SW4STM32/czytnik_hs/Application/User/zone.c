@@ -18,6 +18,8 @@
 
 */
 
+// TODO: Add rate limiting..
+
 #include <assert.h>
 
 #include "stm32f0xx_hal.h"
@@ -26,7 +28,7 @@
 #include "gpio_mapper.h"
 
 volatile static uint8_t zone_configured = 0;
-volatile static Zone_InitConfigTypeDef zone_config;
+volatile static Zone_InitTypeDef zone_config;
 volatile static Zone_ChannelTypeDef zone_channels[ZONE_MAX_CHANNELS];
 
 static Zone_ChannelTypeDef *Zone_Channel_Get(Wiegand_Channel_NumberTypeDef id)
@@ -41,7 +43,7 @@ static void Zone_Channel_InitStruct(Zone_ChannelTypeDef *channel)
 	channel->state = ZONE_STATE_NORMAL;
 }
 
-void Zone_Config(Zone_InitConfigTypeDef *config)
+void Zone_Config(Zone_InitTypeDef *config)
 {
 	assert(config->channels <= ZONE_MAX_CHANNELS);
 
@@ -54,11 +56,6 @@ void Zone_Config(Zone_InitConfigTypeDef *config)
 	}
 
 	zone_configured = 1;
-}
-
-Zone_DataInputTypeDef *Zone_HasData()
-{
-	return 0;
 }
 
 void Zone_Accept(Wiegand_Channel_NumberTypeDef zone_number)
@@ -139,6 +136,7 @@ static void Zone_Process_Timers(uint8_t channel_id)
 }
 
 // called from interrupt
+// TODO: Tamper!!!
 void Zone_SysTickHandler()
 {
 	if(! zone_configured)
