@@ -62,6 +62,11 @@ static void UART_Controller_InitRuntime(void)
 
 static UART_Controller_MessageTypeDef *UART_Controller_GetFreeSlot(void)
 {
+	if(! configured)
+	{
+		return 0;
+	}
+
 	UART_Controller_ChannelIdTypeDef i;
 	for (i = 0; i < UART_CONTROLLER_MAX_MESSAGE_QUEUE_LENGTH; ++i) {
 		UART_Controller_MessageTypeDef *message = UART_Controller_Get(i);
@@ -98,11 +103,6 @@ void UART_Controller_Config(UART_Controller_InitTypeDef *new_config)
 
 void UART_Controller_SendCard(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
 {
-	if( !configured)
-	{
-		return;
-	}
-
 	UART_Controller_MessageTypeDef *message = UART_Controller_GetFreeSlot();
 
 	if(! message)
@@ -115,11 +115,6 @@ void UART_Controller_SendCard(Wiegand_Channel_NumberTypeDef channel_id, uint8_t 
 
 void UART_Controller_SendKey(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_KeyTypeDef key)
 {
-	if( !configured)
-	{
-		return;
-	}
-
 	UART_Controller_MessageTypeDef *message = UART_Controller_GetFreeSlot();
 
 	if(! message)
@@ -130,9 +125,23 @@ void UART_Controller_SendKey(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keyp
 	message->length = snprintf((char*)message->message, UART_CONTROLLER_MAX_MESSAGE_LENGTH, "*%d#K#%d\n", (int)channel_id, (int)key);
 }
 
+void UART_Controller_SendTamper(Wiegand_Channel_NumberTypeDef channel_id)
+{
+	UART_Controller_MessageTypeDef *message = UART_Controller_GetFreeSlot();
+
+	if(! message)
+	{
+		return;
+	}
+
+	message->length = snprintf((char*)message->message, UART_CONTROLLER_MAX_MESSAGE_LENGTH, "*%d#T\n", (int)channel_id);
+}
+
 static void UART_Controller_SendMessage(UART_Controller_MessageTypeDef *message)
 {
 	runtime.sending = 1;
+	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+
 	assert(HAL_UART_Transmit_DMA(config.uart, message->message, message->length) == HAL_OK);
 }
 
@@ -167,6 +176,7 @@ void UART_Controller_TxCpltCallback(UART_HandleTypeDef *huart)
 
 	UART_Controller_ResetSlot(runtime.last);
 	runtime.sending = 0;
+	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
 }
 
 __weak void UART_Controller_Action_Open(Wiegand_Channel_NumberTypeDef channel_id)

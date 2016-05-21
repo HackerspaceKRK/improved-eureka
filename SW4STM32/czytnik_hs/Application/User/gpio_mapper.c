@@ -110,6 +110,16 @@ static const GPIO_TypeDef *GPIO_MAP_PORT_OPEN[] = {
 		OPEN_6_GPIO_Port
 };
 
+static const GPIO_TypeDef *GPIO_MAP_PORT_TAMPER[] = {
+		TAMPER_0_GPIO_Port,
+		TAMPER_1_GPIO_Port,
+		TAMPER_2_GPIO_Port,
+		TAMPER_3_GPIO_Port,
+		TAMPER_4_GPIO_Port,
+		TAMPER_5_GPIO_Port,
+		TAMPER_6_GPIO_Port
+};
+
 static const uint16_t GPIO_MAP_PIN_BUZZER[] = {
 		BUZZER_0_Pin,
 		BUZZER_1_Pin,
@@ -140,6 +150,16 @@ static const uint16_t GPIO_MAP_PIN_OPEN[] = {
 		OPEN_6_Pin,
 };
 
+static const uint16_t GPIO_MAP_PIN_TAMPER[] = {
+		TAMPER_0_Pin,
+		TAMPER_1_Pin,
+		TAMPER_2_Pin,
+		TAMPER_3_Pin,
+		TAMPER_4_Pin,
+		TAMPER_5_Pin,
+		TAMPER_6_Pin,
+};
+
 GPIO_TypeDef *GPIO_Port_ForChannel(uint8_t channel, GPIO_Mapper_DeviceTypeDef device)
 {
 	assert(channel < GPIO_MAPPER_NUMBER_OF_CHANNELS);
@@ -148,11 +168,13 @@ GPIO_TypeDef *GPIO_Port_ForChannel(uint8_t channel, GPIO_Mapper_DeviceTypeDef de
 	switch(device)
 	{
 	case GPIO_MAPPER_BUZZER:
-		return GPIO_MAP_PORT_BUZZER[channel];
+		return (GPIO_TypeDef *) GPIO_MAP_PORT_BUZZER[channel];
 	case GPIO_MAPPER_LED:
-		return GPIO_MAP_PORT_LED[channel];
+		return (GPIO_TypeDef *) GPIO_MAP_PORT_LED[channel];
 	case GPIO_MAPPER_OPEN:
-		return GPIO_MAP_PORT_OPEN[channel];
+		return (GPIO_TypeDef *) GPIO_MAP_PORT_OPEN[channel];
+	case GPIO_MAPPER_TAMPER:
+		return (GPIO_TypeDef *) GPIO_MAP_PORT_TAMPER[channel];
 
 	default:
 		assert(0);
@@ -174,6 +196,8 @@ uint16_t GPIO_Pin_ForChannel(uint8_t channel, GPIO_Mapper_DeviceTypeDef device)
 		return GPIO_MAP_PIN_LED[channel];
 	case GPIO_MAPPER_OPEN:
 		return GPIO_MAP_PIN_OPEN[channel];
+	case GPIO_MAPPER_TAMPER:
+		return GPIO_MAP_PIN_TAMPER[channel];
 
 	default:
 		assert(0);

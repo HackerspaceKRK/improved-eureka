@@ -26,11 +26,12 @@
 typedef enum {
 	GPIO_MAPPER_BUZZER = 0,
 	GPIO_MAPPER_LED = 1,
-	GPIO_MAPPER_OPEN = 2
+	GPIO_MAPPER_OPEN = 2,
+	GPIO_MAPPER_TAMPER = 3
 } GPIO_Mapper_DeviceTypeDef;
 
 #define GPIO_MAPPER_NUMBER_OF_CHANNELS 7
-#define GPIO_MAPPER_DEVICE_NUM 3
+#define GPIO_MAPPER_DEVICE_NUM 4
 
 uint8_t GPIO_To_Wiegand_Channel(uint16_t GPIO_Pin);
 uint8_t GPIO_To_Wiegand_Bit(uint16_t GPIO_Pin);

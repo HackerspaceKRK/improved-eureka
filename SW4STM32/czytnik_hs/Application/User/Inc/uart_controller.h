@@ -24,8 +24,8 @@
 #include "zone.h"
 #include "wiegand.h"
 
-#define UART_CONTROLLER_MAX_MESSAGE_QUEUE_LENGTH 8
-#define UART_CONTROLLER_MAX_MESSAGE_LENGTH 24
+#define UART_CONTROLLER_MAX_MESSAGE_QUEUE_LENGTH 9
+#define UART_CONTROLLER_MAX_MESSAGE_LENGTH 20
 
 
 typedef uint8_t UART_Controller_ChannelIdTypeDef;
@@ -49,6 +49,7 @@ void UART_Controller_Config(UART_Controller_InitTypeDef *config);
 
 void UART_Controller_SendCard(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number);
 void UART_Controller_SendKey(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_KeyTypeDef key);
+void UART_Controller_SendTamper(Wiegand_Channel_NumberTypeDef channel_id);
 
 void UART_Controller_Process(void);
 
@@ -56,6 +57,6 @@ __weak void UART_Controller_Action_Open(Wiegand_Channel_NumberTypeDef channel_id
 __weak void UART_Controller_Action_Reject(Wiegand_Channel_NumberTypeDef channel_id);
 
 // called from interrupt
-void UART_Controller_TxCpltCallback(huart);
+void UART_Controller_TxCpltCallback(UART_HandleTypeDef *huart);
 
 #endif /* APPLICATION_USER_INC_UART_CONTROLLER_H_ */

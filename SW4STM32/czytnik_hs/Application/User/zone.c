@@ -41,6 +41,11 @@ static Zone_ChannelTypeDef *Zone_Channel_Get(Wiegand_Channel_NumberTypeDef id)
 static void Zone_Channel_InitStruct(Zone_ChannelTypeDef *channel)
 {
 	channel->state = ZONE_STATE_NORMAL;
+
+	channel->beep_timer = 0;
+	channel->led_timer = 0;
+	channel->open_timer = 0;
+	channel->tamper_timer = 0;
 }
 
 void Zone_Config(Zone_InitTypeDef *config)
@@ -112,6 +117,11 @@ __weak void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zon
 //
 }
 
+__weak void Zone_Callback_Tamper(Wiegand_Channel_NumberTypeDef channel_id)
+{
+//
+}
+
 static void Zone_Process_Timer(uint8_t channel_id, Zone_TimerTypeDef *timer, GPIO_Mapper_DeviceTypeDef type)
 {
 	if(*timer)
@@ -126,13 +136,39 @@ static void Zone_Process_Timer(uint8_t channel_id, Zone_TimerTypeDef *timer, GPI
 	}
 }
 
-static void Zone_Process_Timers(uint8_t channel_id)
+static void Zone_Process_Tamper(uint8_t channel_id)
 {
 	Zone_ChannelTypeDef *channel = Zone_Channel_Get(channel_id);
 
+
+	if(channel->tamper_timer)
+	{
+		channel->tamper_timer--;
+
+		return;
+	}
+
+	if(HAL_GPIO_ReadPin(
+			GPIO_Port_ForChannel(channel_id, GPIO_MAPPER_TAMPER),
+			GPIO_Pin_ForChannel(channel_id, GPIO_MAPPER_TAMPER)) == GPIO_PIN_SET)
+	{
+		Zone_Callback_Tamper(channel_id);
+
+		channel->tamper_timer = ZONE_TAMPER_TIMEOUT;
+	}
+}
+
+static void Zone_Process(uint8_t channel_id)
+{
+	Zone_ChannelTypeDef *channel = Zone_Channel_Get(channel_id);
+
+	// timers
 	Zone_Process_Timer(channel_id, &channel->beep_timer, GPIO_MAPPER_BUZZER);
 	Zone_Process_Timer(channel_id, &channel->led_timer, GPIO_MAPPER_LED);
 	Zone_Process_Timer(channel_id, &channel->open_timer, GPIO_MAPPER_OPEN);
+
+	// tamper
+	Zone_Process_Tamper(channel_id);
 }
 
 // called from interrupt
@@ -147,6 +183,6 @@ void Zone_SysTickHandler()
 	int i;
 
 	for (i = 0; i < zone_config.channels; ++i) {
-		Zone_Process_Timers(i);
+		Zone_Process(i);
 	}
 }

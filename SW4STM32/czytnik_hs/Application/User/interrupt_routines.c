@@ -59,3 +59,8 @@ void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypr
 {
 	UART_Controller_SendKey(channel_id, key);
 }
+
+void Zone_Callback_Tamper(Wiegand_Channel_NumberTypeDef channel_id)
+{
+	UART_Controller_SendTamper(channel_id);
+}
