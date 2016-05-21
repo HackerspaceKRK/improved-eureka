@@ -28,7 +28,7 @@
 #include "wiegand.h"
 
 static UART_Controller_InitTypeDef config;
-static UART_Controller_MessageQueueTypeDef runtime;
+volatile static UART_Controller_MessageQueueTypeDef runtime;
 static uint8_t configured = 0;
 
 
@@ -37,60 +37,16 @@ static void UART_Controller_CopyConfig(UART_Controller_InitTypeDef *new_config)
 	config.uart = new_config->uart;
 }
 
-static void UART_Controller_ResetSlot(UART_Controller_MessageTypeDef *message)
-{
-	message->length = 0;
-}
-
-static UART_Controller_MessageTypeDef *UART_Controller_Get(UART_Controller_ChannelIdTypeDef id)
-{
-	assert(id < UART_CONTROLLER_MAX_MESSAGE_QUEUE_LENGTH);
-
-	return &runtime.queue[id];
-}
-
 static void UART_Controller_InitRuntime(void)
 {
-	runtime.last = 0;
-	runtime.sending = 0;
+	runtime.current_out_message = 0;
+
+	runtime.in_buffer_position = 0;
 
 	UART_Controller_ChannelIdTypeDef i;
-	for (i = 0; i < UART_CONTROLLER_MAX_MESSAGE_QUEUE_LENGTH; ++i) {
-		UART_Controller_ResetSlot(UART_Controller_Get(i));
-	}
+	Message_Queue_Init(&runtime.out_queue);
+	Message_Queue_Init(&runtime.in_queue);
 }
-
-static UART_Controller_MessageTypeDef *UART_Controller_GetFreeSlot(void)
-{
-	if(! configured)
-	{
-		return 0;
-	}
-
-	UART_Controller_ChannelIdTypeDef i;
-	for (i = 0; i < UART_CONTROLLER_MAX_MESSAGE_QUEUE_LENGTH; ++i) {
-		UART_Controller_MessageTypeDef *message = UART_Controller_Get(i);
-
-		if(message->length == 0)
-			return message;
-	}
-
-	return 0;
-}
-
-static UART_Controller_MessageTypeDef *UART_Controller_GetToSend(void)
-{
-	UART_Controller_ChannelIdTypeDef i;
-	for (i = 0; i < UART_CONTROLLER_MAX_MESSAGE_QUEUE_LENGTH; ++i) {
-		UART_Controller_MessageTypeDef *message = UART_Controller_Get(i);
-
-		if(message->length != 0)
-			return message;
-	}
-
-	return 0;
-}
-
 
 void UART_Controller_Config(UART_Controller_InitTypeDef *new_config)
 {
@@ -99,50 +55,105 @@ void UART_Controller_Config(UART_Controller_InitTypeDef *new_config)
 	UART_Controller_InitRuntime();
 
 	configured = 1;
+
+	assert(HAL_UART_Receive_DMA(config.uart, &runtime.in_char, 1) == HAL_OK);
 }
 
 void UART_Controller_SendCard(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
 {
-	UART_Controller_MessageTypeDef *message = UART_Controller_GetFreeSlot();
+	Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.out_queue);
 
 	if(! message)
 	{
 		return;
 	}
 
-	message->length = snprintf((char*)message->message, UART_CONTROLLER_MAX_MESSAGE_LENGTH, "*%d#C#%d\n", (int)channel_id, (int)card_number);
+	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*%d#C#%d\n", (int)channel_id, (int)card_number);
 }
 
 void UART_Controller_SendKey(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_KeyTypeDef key)
 {
-	UART_Controller_MessageTypeDef *message = UART_Controller_GetFreeSlot();
+	Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.out_queue);
 
 	if(! message)
 	{
 		return;
 	}
 
-	message->length = snprintf((char*)message->message, UART_CONTROLLER_MAX_MESSAGE_LENGTH, "*%d#K#%d\n", (int)channel_id, (int)key);
+	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*%d#K#%d\n", (int)channel_id, (int)key);
 }
 
 void UART_Controller_SendTamper(Wiegand_Channel_NumberTypeDef channel_id)
 {
-	UART_Controller_MessageTypeDef *message = UART_Controller_GetFreeSlot();
+	Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.out_queue);
 
 	if(! message)
 	{
 		return;
 	}
 
-	message->length = snprintf((char*)message->message, UART_CONTROLLER_MAX_MESSAGE_LENGTH, "*%d#T\n", (int)channel_id);
+	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*%d#T\n", (int)channel_id);
 }
 
-static void UART_Controller_SendMessage(UART_Controller_MessageTypeDef *message)
+static void UART_Controller_SendMessage(Message_Queue_MessageTypeDef *message)
 {
-	runtime.sending = 1;
+	runtime.current_out_message = message;
 	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
 
 	assert(HAL_UART_Transmit_DMA(config.uart, message->message, message->length) == HAL_OK);
+}
+
+static void UART_Controller_ProcessAction(void)
+{
+	Message_Queue_MessageTypeDef *message = Message_Queue_GetUsed(&runtime.in_queue);
+	if(! message)
+	{
+		return;
+	}
+
+	uint8_t *hash_loc = memchr(message->message, '#', message->length);
+
+	if(hash_loc != 0)
+	{
+		*hash_loc = 0;
+
+		uint8_t *without_star = message->message+1;
+
+		Wiegand_Channel_NumberTypeDef channel_number = atoi(without_star);
+		uint8_t *action_char = hash_loc + 1;
+
+		switch(*action_char)
+		{
+		case 'A': // accept
+			UART_Controller_Action_Accept(channel_number);
+			break;
+		case 'R': // reject
+			UART_Controller_Action_Reject(channel_number);
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	Message_Queue_ResetSlot(message);
+}
+
+static void UART_Controller_ProcessOut(void)
+{
+	if(runtime.current_out_message)
+	{
+		return;
+	}
+
+	// find victim
+	Message_Queue_MessageTypeDef *message = Message_Queue_GetUsed(&runtime.out_queue);
+	if(! message)
+	{
+		return;
+	}
+
+	UART_Controller_SendMessage(message);
 }
 
 void UART_Controller_Process(void)
@@ -152,20 +163,8 @@ void UART_Controller_Process(void)
 		return;
 	}
 
-	if(runtime.sending)
-	{
-		return;
-	}
-
-	// find victim
-	UART_Controller_MessageTypeDef *message = UART_Controller_GetToSend();
-	if(! message)
-	{
-		return;
-	}
-
-	runtime.last = message;
-	UART_Controller_SendMessage(message);
+	UART_Controller_ProcessOut();
+	UART_Controller_ProcessAction();
 }
 
 // called from interrupt
@@ -174,12 +173,59 @@ void UART_Controller_TxCpltCallback(UART_HandleTypeDef *huart)
 	if(huart != config.uart)
 		return; // not mine
 
-	UART_Controller_ResetSlot(runtime.last);
-	runtime.sending = 0;
+	Message_Queue_ResetSlot(runtime.current_out_message);
+	runtime.current_out_message = 0;
 	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
 }
 
-__weak void UART_Controller_Action_Open(Wiegand_Channel_NumberTypeDef channel_id)
+static void UART_Controller_ProcessReceivedData(void)
+{
+	// in case of overflow wait for * (starting character)
+	if(runtime.in_buffer_position >= MESSAGE_QUEUE_MAX_MESSAGE_LENGTH)
+	{
+		if(runtime.in_char == '*')
+		{
+			runtime.in_buffer_position = 0;
+		}
+		else
+		{
+			return;
+		}
+	}
+
+	runtime.in_buffer[runtime.in_buffer_position++] = runtime.in_char;
+
+	if(runtime.in_char == '\n')
+	{
+		Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.in_queue);
+		if(! message) // queue full!
+		{
+			runtime.in_buffer_position = 0; // ignore message, wait for next
+
+			return;
+		}
+		// add to queue
+		memcpy(message->message, runtime.in_buffer, runtime.in_buffer_position);
+		message->length = runtime.in_buffer_position;
+
+		runtime.in_buffer_position = 0;
+
+		return;
+	}
+}
+
+
+
+// called from interrupt
+void UART_Controller_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart != config.uart)
+		return; // not mine
+
+	UART_Controller_ProcessReceivedData();
+}
+
+__weak void UART_Controller_Action_Accept(Wiegand_Channel_NumberTypeDef channel_id)
 {
 	//
 }

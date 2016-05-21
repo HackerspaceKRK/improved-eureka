@@ -19,7 +19,9 @@
 */
 
 #include <stdint.h>
+#include <assert.h>
 
+#include "project_constants.h"
 #include "wiegand.h"
 #include "stm32f0xx_hal.h"
 #include "gpio_mapper.h"
@@ -45,6 +47,16 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	UART_Controller_TxCpltCallback(huart);
 }
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	UART_Controller_RxCpltCallback(huart);
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+	assert(0);
+}
+
 void Wiegand_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
 {
 	Zone_Callback(channel_id, length, card_number);
@@ -63,4 +75,25 @@ void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypr
 void Zone_Callback_Tamper(Wiegand_Channel_NumberTypeDef channel_id)
 {
 	UART_Controller_SendTamper(channel_id);
+}
+
+// following functions have data from outside - we have to check it!
+void UART_Controller_Action_Accept(Wiegand_Channel_NumberTypeDef channel_id)
+{
+	if(channel_id >= PROJECT_CONSTANT_CHANNELS_NUMBER)
+	{
+		return;
+	}
+
+	Zone_Accept(channel_id);
+}
+
+void UART_Controller_Action_Reject(Wiegand_Channel_NumberTypeDef channel_id)
+{
+	if(channel_id >= PROJECT_CONSTANT_CHANNELS_NUMBER)
+	{
+		return;
+	}
+
+	Zone_Reject(channel_id);
 }

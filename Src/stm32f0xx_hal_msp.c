@@ -34,9 +34,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
 
-extern DMA_HandleTypeDef hdma_usart1_rx;
-
 extern DMA_HandleTypeDef hdma_usart1_tx;
+
+extern DMA_HandleTypeDef hdma_usart1_rx;
 
 /* USER CODE BEGIN 0 */
 
@@ -87,18 +87,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 
     /* Peripheral DMA init*/
   
-    hdma_usart1_rx.Instance = DMA1_Channel3;
-    hdma_usart1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    hdma_usart1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_usart1_rx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_usart1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_usart1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart1_rx.Init.Mode = DMA_NORMAL;
-    hdma_usart1_rx.Init.Priority = DMA_PRIORITY_LOW;
-    HAL_DMA_Init(&hdma_usart1_rx);
-
-    __HAL_LINKDMA(huart,hdmarx,hdma_usart1_rx);
-
     hdma_usart1_tx.Instance = DMA1_Channel2;
     hdma_usart1_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_usart1_tx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -110,6 +98,18 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     HAL_DMA_Init(&hdma_usart1_tx);
 
     __HAL_LINKDMA(huart,hdmatx,hdma_usart1_tx);
+
+    hdma_usart1_rx.Instance = DMA1_Channel3;
+    hdma_usart1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_usart1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart1_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart1_rx.Init.Mode = DMA_CIRCULAR;
+    hdma_usart1_rx.Init.Priority = DMA_PRIORITY_LOW;
+    HAL_DMA_Init(&hdma_usart1_rx);
+
+    __HAL_LINKDMA(huart,hdmarx,hdma_usart1_rx);
 
     /* Peripheral interrupt init */
     HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
@@ -139,8 +139,8 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9|GPIO_PIN_10);
 
     /* Peripheral DMA DeInit*/
-    HAL_DMA_DeInit(huart->hdmarx);
     HAL_DMA_DeInit(huart->hdmatx);
+    HAL_DMA_DeInit(huart->hdmarx);
 
     /* Peripheral interrupt DeInit*/
     HAL_NVIC_DisableIRQ(USART1_IRQn);

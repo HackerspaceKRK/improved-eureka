@@ -35,6 +35,7 @@
 
 /* USER CODE BEGIN Includes */
 
+#include "project_constants.h"
 #include "wiegand.h"
 #include "zone.h"
 #include "uart_controller.h"
@@ -43,8 +44,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart1;
-DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart1_tx;
+DMA_HandleTypeDef hdma_usart1_rx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -67,7 +68,7 @@ static void MX_USART1_UART_Init(void);
 static void Wiegand_Init(void)
 {
 	WiegandInitTypeDef WiegandInitStruct;
-	WiegandInitStruct.channels_number = 7;
+	WiegandInitStruct.channels_number = PROJECT_CONSTANT_CHANNELS_NUMBER;
 	WiegandInitStruct.check_parity = 1;
 
 	Wiegand_Config(&WiegandInitStruct);
@@ -77,7 +78,7 @@ static void Wiegand_Init(void)
 static void Zone_Init(void)
 {
 	Zone_InitTypeDef ZoneInitStruct;
-	ZoneInitStruct.channels = 7;
+	ZoneInitStruct.channels = PROJECT_CONSTANT_CHANNELS_NUMBER;
 
 	Zone_Config(&ZoneInitStruct);
 }
@@ -187,7 +188,7 @@ void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 19200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;

@@ -23,22 +23,21 @@
 
 #include "zone.h"
 #include "wiegand.h"
-
-#define UART_CONTROLLER_MAX_MESSAGE_QUEUE_LENGTH 9
-#define UART_CONTROLLER_MAX_MESSAGE_LENGTH 20
-
+#include "message_queue.h"
 
 typedef uint8_t UART_Controller_ChannelIdTypeDef;
 
-typedef struct {
-	uint8_t message[UART_CONTROLLER_MAX_MESSAGE_LENGTH];
-	uint8_t length;
-} UART_Controller_MessageTypeDef;
 
 typedef struct {
-	UART_Controller_MessageTypeDef queue[UART_CONTROLLER_MAX_MESSAGE_QUEUE_LENGTH];
-	UART_Controller_MessageTypeDef *last;
-	uint8_t sending;
+	Message_Queue_MessageQueueTypeDef out_queue;
+	Message_Queue_MessageQueueTypeDef in_queue;
+
+	Message_Queue_MessageTypeDef *current_out_message;
+
+	uint8_t in_buffer[MESSAGE_QUEUE_MAX_MESSAGE_LENGTH];
+	uint8_t in_buffer_position;
+	uint8_t in_char;
+
 } UART_Controller_MessageQueueTypeDef;
 
 typedef struct {
@@ -53,10 +52,11 @@ void UART_Controller_SendTamper(Wiegand_Channel_NumberTypeDef channel_id);
 
 void UART_Controller_Process(void);
 
-__weak void UART_Controller_Action_Open(Wiegand_Channel_NumberTypeDef channel_id);
+__weak void UART_Controller_Action_Accept(Wiegand_Channel_NumberTypeDef channel_id);
 __weak void UART_Controller_Action_Reject(Wiegand_Channel_NumberTypeDef channel_id);
 
 // called from interrupt
 void UART_Controller_TxCpltCallback(UART_HandleTypeDef *huart);
+void UART_Controller_RxCpltCallback(UART_HandleTypeDef *huart);
 
 #endif /* APPLICATION_USER_INC_UART_CONTROLLER_H_ */
