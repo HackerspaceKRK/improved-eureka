@@ -67,7 +67,7 @@ void UART_Controller_SendCard(Wiegand_Channel_NumberTypeDef channel_id, uint8_t 
 		return;
 	}
 
-	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*%d#C#%d\n", (int)channel_id, (int)card_number);
+	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*C#%d#%d\n", (int)channel_id, (int)card_number);
 }
 
 void UART_Controller_SendKey(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_KeyTypeDef key)
@@ -79,7 +79,7 @@ void UART_Controller_SendKey(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keyp
 		return;
 	}
 
-	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*%d#K#%d\n", (int)channel_id, (int)key);
+	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*K#%d#%d\n", (int)channel_id, (int)key);
 }
 
 void UART_Controller_SendTamper(Wiegand_Channel_NumberTypeDef channel_id)
@@ -91,7 +91,7 @@ void UART_Controller_SendTamper(Wiegand_Channel_NumberTypeDef channel_id)
 		return;
 	}
 
-	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*%d#T\n", (int)channel_id);
+	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*T#%d\n", (int)channel_id);
 }
 
 void UART_Controller_SendWatchdog(void)
