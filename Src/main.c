@@ -290,13 +290,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = TAMPER_6_Pin|TAMPER_5_Pin|TAMPER_4_Pin|TAMPER_1_Pin 
                           |TAMPER_0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : TAMPER_3_Pin TAMPER_2_Pin */
   GPIO_InitStruct.Pin = TAMPER_3_Pin|TAMPER_2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
   /*Configure GPIO pins : D0_3_Pin D1_2_Pin */
