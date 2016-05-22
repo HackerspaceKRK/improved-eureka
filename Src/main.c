@@ -142,15 +142,11 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 
-	 // HAL_Delay(1000);
-
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-
-	//HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
-	//HAL_GPIO_TogglePin(BUZZER_0_GPIO_Port, BUZZER_0_Pin);
-
+	HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
 	Wiegand_Process();
 	UART_Controller_Process();
+	HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET);
+
 	HAL_IWDG_Refresh(&hiwdg);
 
 	__WFI();
