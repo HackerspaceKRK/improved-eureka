@@ -49,6 +49,7 @@ void UART_Controller_Config(UART_Controller_InitTypeDef *config);
 void UART_Controller_SendCard(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number);
 void UART_Controller_SendKey(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_KeyTypeDef key);
 void UART_Controller_SendTamper(Wiegand_Channel_NumberTypeDef channel_id);
+void UART_Controller_SendWatchdog(void);
 
 void UART_Controller_Process(void);
 

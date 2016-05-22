@@ -43,6 +43,8 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+IWDG_HandleTypeDef hiwdg;
+
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
 DMA_HandleTypeDef hdma_usart1_rx;
@@ -57,6 +59,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_IWDG_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -112,12 +115,22 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART1_UART_Init();
+  MX_IWDG_Init();
 
   /* USER CODE BEGIN 2 */
 
   Wiegand_Init();
   Zone_Init();
   UART_Controller_Init();
+
+  HAL_IWDG_Start(&hiwdg);
+
+  // check if we have been resetted by watchdog
+  if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
+  {
+	  UART_Controller_SendWatchdog();
+	  __HAL_RCC_CLEAR_RESET_FLAGS();
+  }
 
   /* USER CODE END 2 */
 
@@ -138,9 +151,9 @@ int main(void)
 
 	Wiegand_Process();
 	UART_Controller_Process();
+	HAL_IWDG_Refresh(&hiwdg);
 
 	__WFI();
-
   }
   /* USER CODE END 3 */
 
@@ -155,9 +168,10 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = 16;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL12;
@@ -181,6 +195,18 @@ void SystemClock_Config(void)
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+}
+
+/* IWDG init function */
+void MX_IWDG_Init(void)
+{
+
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_4;
+  hiwdg.Init.Window = 4095;
+  hiwdg.Init.Reload = 4095;
+  HAL_IWDG_Init(&hiwdg);
+
 }
 
 /* USART1 init function */

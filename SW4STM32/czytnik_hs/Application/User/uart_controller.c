@@ -43,7 +43,6 @@ static void UART_Controller_InitRuntime(void)
 
 	runtime.in_buffer_position = 0;
 
-	UART_Controller_ChannelIdTypeDef i;
 	Message_Queue_Init(&runtime.out_queue);
 	Message_Queue_Init(&runtime.in_queue);
 }
@@ -93,6 +92,18 @@ void UART_Controller_SendTamper(Wiegand_Channel_NumberTypeDef channel_id)
 	}
 
 	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*%d#T\n", (int)channel_id);
+}
+
+void UART_Controller_SendWatchdog(void)
+{
+	Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.out_queue);
+
+	if(! message)
+	{
+		return;
+	}
+
+	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*W\n");
 }
 
 static void UART_Controller_SendMessage(Message_Queue_MessageTypeDef *message)

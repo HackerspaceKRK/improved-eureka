@@ -60,7 +60,6 @@ uint8_t GPIO_To_Wiegand_Channel(uint16_t GPIO_Pin)
 	}
 }
 
-// TODO: optimize this
 uint8_t GPIO_To_Wiegand_Bit(uint16_t GPIO_Pin)
 {
 	switch(GPIO_Pin)

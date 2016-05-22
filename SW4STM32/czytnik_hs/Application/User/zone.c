@@ -172,7 +172,6 @@ static void Zone_Process(uint8_t channel_id)
 }
 
 // called from interrupt
-// TODO: Tamper!!!
 void Zone_SysTickHandler()
 {
 	if(! zone_configured)
