@@ -106,6 +106,18 @@ void UART_Controller_SendWatchdog(void)
 	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*W\n");
 }
 
+void UART_Controller_SendPong(void)
+{
+	Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.out_queue);
+
+	if(! message)
+	{
+		return;
+	}
+
+	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*P\n");
+}
+
 static void UART_Controller_SendMessage(Message_Queue_MessageTypeDef *message)
 {
 	runtime.current_out_message = message;
@@ -128,10 +140,10 @@ static void UART_Controller_ProcessAction(void)
 	{
 		*hash_loc = 0;
 
-		uint8_t *without_star = message->message+1;
+		uint8_t *action_char = message->message+1;
 
-		Wiegand_Channel_NumberTypeDef channel_number = atoi(without_star);
-		uint8_t *action_char = hash_loc + 1;
+		uint8_t *channel_number_s = hash_loc + 1;
+		Wiegand_Channel_NumberTypeDef channel_number = atoi(channel_number_s);
 
 		switch(*action_char)
 		{
@@ -140,6 +152,9 @@ static void UART_Controller_ProcessAction(void)
 			break;
 		case 'R': // reject
 			UART_Controller_Action_Reject(channel_number);
+			break;
+		case 'P': // ping
+			UART_Controller_Action_Ping(channel_number);
 			break;
 
 		default:
@@ -244,4 +259,9 @@ __weak void UART_Controller_Action_Accept(Wiegand_Channel_NumberTypeDef channel_
 __weak void UART_Controller_Action_Reject(Wiegand_Channel_NumberTypeDef channel_id)
 {
 	//
+}
+
+__weak void UART_Controller_Action_Ping(Wiegand_Channel_NumberTypeDef channel_id)
+{
+
 }

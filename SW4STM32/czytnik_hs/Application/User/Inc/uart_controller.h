@@ -50,11 +50,13 @@ void UART_Controller_SendCard(Wiegand_Channel_NumberTypeDef channel_id, uint8_t 
 void UART_Controller_SendKey(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_KeyTypeDef key);
 void UART_Controller_SendTamper(Wiegand_Channel_NumberTypeDef channel_id);
 void UART_Controller_SendWatchdog(void);
+void UART_Controller_SendPong(void);
 
 void UART_Controller_Process(void);
 
 __weak void UART_Controller_Action_Accept(Wiegand_Channel_NumberTypeDef channel_id);
 __weak void UART_Controller_Action_Reject(Wiegand_Channel_NumberTypeDef channel_id);
+__weak void UART_Controller_Action_Ping(Wiegand_Channel_NumberTypeDef channel_id);
 
 // called from interrupt
 void UART_Controller_TxCpltCallback(UART_HandleTypeDef *huart);

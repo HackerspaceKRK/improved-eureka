@@ -97,3 +97,8 @@ void UART_Controller_Action_Reject(Wiegand_Channel_NumberTypeDef channel_id)
 
 	Zone_Reject(channel_id);
 }
+
+void UART_Controller_Action_Ping(Wiegand_Channel_NumberTypeDef channel_id)
+{
+	UART_Controller_SendPong();
+}
