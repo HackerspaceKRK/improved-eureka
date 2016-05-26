@@ -21,6 +21,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "stm32f0xx_hal.h"
 
@@ -62,10 +63,7 @@ void UART_Controller_SendCard(Wiegand_Channel_NumberTypeDef channel_id, uint8_t 
 {
 	Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.out_queue);
 
-	if(! message)
-	{
-		return;
-	}
+	assert(message);
 
 	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*C#%d#%d\n", (int)channel_id, (int)card_number);
 }
@@ -74,10 +72,7 @@ void UART_Controller_SendKey(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keyp
 {
 	Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.out_queue);
 
-	if(! message)
-	{
-		return;
-	}
+	assert(message);
 
 	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*K#%d#%d\n", (int)channel_id, (int)key);
 }
@@ -86,10 +81,7 @@ void UART_Controller_SendTamper(Wiegand_Channel_NumberTypeDef channel_id)
 {
 	Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.out_queue);
 
-	if(! message)
-	{
-		return;
-	}
+	assert(message);
 
 	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*T#%d\n", (int)channel_id);
 }
@@ -98,10 +90,7 @@ void UART_Controller_SendWatchdog(void)
 {
 	Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.out_queue);
 
-	if(! message)
-	{
-		return;
-	}
+	assert(message);
 
 	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*W\n");
 }
@@ -110,10 +99,7 @@ void UART_Controller_SendPong(void)
 {
 	Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.out_queue);
 
-	if(! message)
-	{
-		return;
-	}
+	assert(message);
 
 	message->length = snprintf((char*)message->message, MESSAGE_QUEUE_MAX_MESSAGE_LENGTH, "*P\n");
 }
@@ -121,7 +107,7 @@ void UART_Controller_SendPong(void)
 static void UART_Controller_SendMessage(Message_Queue_MessageTypeDef *message)
 {
 	runtime.current_out_message = message;
-	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+	UART_Controller_SendStart();
 
 	assert(HAL_UART_Transmit_DMA(config.uart, message->message, message->length) == HAL_OK);
 }
@@ -154,7 +140,7 @@ static void UART_Controller_ProcessAction(void)
 			UART_Controller_Action_Reject(channel_number);
 			break;
 		case 'P': // ping
-			UART_Controller_Action_Ping(channel_number);
+			UART_Controller_Action_Ping();
 			break;
 
 		default:
@@ -201,7 +187,7 @@ void UART_Controller_TxCpltCallback(UART_HandleTypeDef *huart)
 
 	Message_Queue_ResetSlot(runtime.current_out_message);
 	runtime.current_out_message = 0;
-	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+	UART_Controller_SendStop();
 }
 
 static void UART_Controller_ProcessReceivedData(void)
@@ -224,12 +210,8 @@ static void UART_Controller_ProcessReceivedData(void)
 	if(runtime.in_char == '\n')
 	{
 		Message_Queue_MessageTypeDef *message = Message_Queue_GetFree(&runtime.in_queue);
-		if(! message) // queue full!
-		{
-			runtime.in_buffer_position = 0; // ignore message, wait for next
+		assert(message); // queue full!
 
-			return;
-		}
 		// add to queue
 		memcpy(message->message, runtime.in_buffer, runtime.in_buffer_position);
 		message->length = runtime.in_buffer_position;
@@ -261,7 +243,16 @@ __weak void UART_Controller_Action_Reject(Wiegand_Channel_NumberTypeDef channel_
 	//
 }
 
-__weak void UART_Controller_Action_Ping(Wiegand_Channel_NumberTypeDef channel_id)
+__weak void UART_Controller_Action_Ping()
+{
+
+}
+
+__weak void UART_Controller_SendStart(void)
+{
+
+}
+__weak void UART_Controller_SendStop(void)
 {
 
 }

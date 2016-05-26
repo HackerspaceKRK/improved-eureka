@@ -19,6 +19,7 @@
 */
 
 // TODO: Add rate limiting..
+// TODO: Move GPIO operations to interrupt_routines
 
 #include <assert.h>
 
@@ -26,10 +27,13 @@
 
 #include "zone.h"
 #include "gpio_mapper.h"
+#include "timer.h"
 
 volatile static uint8_t zone_configured = 0;
 volatile static Zone_InitTypeDef zone_config;
 volatile static Zone_ChannelTypeDef zone_channels[ZONE_MAX_CHANNELS];
+
+volatile static Timer_TimerTypeDef timers;
 
 static Zone_ChannelTypeDef *Zone_Channel_Get(Wiegand_Channel_NumberTypeDef id)
 {
@@ -38,13 +42,12 @@ static Zone_ChannelTypeDef *Zone_Channel_Get(Wiegand_Channel_NumberTypeDef id)
 	return (Zone_ChannelTypeDef *)&zone_channels[id]; // I know it discards volatile
 }
 
-static void Zone_Channel_InitStruct(Zone_ChannelTypeDef *channel)
+static void Zone_Channel_InitStruct(Zone_ChannelTypeDef *channel, Zone_IdTypeDef id)
 {
+	channel->id = id;
+
 	channel->state = ZONE_STATE_NORMAL;
 
-	channel->beep_timer = 0;
-	channel->led_timer = 0;
-	channel->open_timer = 0;
 	channel->tamper_timer = 0;
 }
 
@@ -57,24 +60,42 @@ void Zone_Config(Zone_InitTypeDef *config)
 	int i;
 	for(i = 0; i < config->channels; ++i)
 	{
-		Zone_Channel_InitStruct(Zone_Channel_Get(i));
+		Zone_Channel_InitStruct(Zone_Channel_Get(i), i);
 	}
+
+	Timer_Init(&timers);
 
 	zone_configured = 1;
 }
 
+static void Zone_AcceptTimeout(void *channel_p)
+{
+	Zone_ChannelTypeDef *channel = (Zone_ChannelTypeDef *)channel_p;
+
+	GPIO_Write_Channel(channel->id, GPIO_MAPPER_OPEN, GPIO_PIN_RESET);
+}
 void Zone_Accept(Wiegand_Channel_NumberTypeDef zone_number)
 {
 	Zone_ChannelTypeDef *channel = Zone_Channel_Get(zone_number);
 
-	channel->open_timer = ZONE_OPEN_TIMEOUT;
+	GPIO_Write_Channel(channel->id, GPIO_MAPPER_OPEN, GPIO_PIN_SET);
+	Timer_Cancel(&timers, Zone_AcceptTimeout, (void*) channel);
+	Timer_Start(&timers, ZONE_OPEN_TIMEOUT, Zone_AcceptTimeout, (void*) channel);
 }
 
+static void Zone_RejectTimeout(void *channel_p)
+{
+	Zone_ChannelTypeDef *channel = (Zone_ChannelTypeDef *)channel_p;
+
+	GPIO_Write_Channel(channel->id, GPIO_MAPPER_BUZZER, GPIO_PIN_RESET);
+}
 void Zone_Reject(Wiegand_Channel_NumberTypeDef zone_number)
 {
 	Zone_ChannelTypeDef *channel = Zone_Channel_Get(zone_number);
 
-	channel->beep_timer = ZONE_BEEP_TIMEOUT;
+	GPIO_Write_Channel(zone_number, GPIO_MAPPER_BUZZER, GPIO_PIN_SET);
+	Timer_Cancel(&timers, Zone_AcceptTimeout, (void*) channel);
+	Timer_Start(&timers, ZONE_BEEP_TIMEOUT, Zone_RejectTimeout, (void*) channel);
 }
 
 void Zone_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
@@ -107,34 +128,6 @@ void Zone_Callback(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wie
 	}
 }
 
-__weak void Zone_Callback_CardRead(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
-{
-//
-}
-
-__weak void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_KeyTypeDef key)
-{
-//
-}
-
-__weak void Zone_Callback_Tamper(Wiegand_Channel_NumberTypeDef channel_id)
-{
-//
-}
-
-static void Zone_Process_Timer(uint8_t channel_id, Zone_TimerTypeDef *timer, GPIO_Mapper_DeviceTypeDef type)
-{
-	if(*timer)
-	{
-		(*timer) --;
-
-		GPIO_Write_Channel(channel_id, type, GPIO_PIN_SET);
-	}
-	else
-	{
-		GPIO_Write_Channel(channel_id, type, GPIO_PIN_RESET);
-	}
-}
 
 static void Zone_Process_Tamper(uint8_t channel_id)
 {
@@ -160,13 +153,6 @@ static void Zone_Process_Tamper(uint8_t channel_id)
 
 static void Zone_Process(uint8_t channel_id)
 {
-	Zone_ChannelTypeDef *channel = Zone_Channel_Get(channel_id);
-
-	// timers
-	Zone_Process_Timer(channel_id, &channel->beep_timer, GPIO_MAPPER_BUZZER);
-	Zone_Process_Timer(channel_id, &channel->led_timer, GPIO_MAPPER_LED);
-	Zone_Process_Timer(channel_id, &channel->open_timer, GPIO_MAPPER_OPEN);
-
 	// tamper
 	Zone_Process_Tamper(channel_id);
 }
@@ -181,7 +167,24 @@ void Zone_SysTickHandler()
 
 	int i;
 
+	Timer_SysTickHandler(&timers);
+
 	for (i = 0; i < zone_config.channels; ++i) {
 		Zone_Process(i);
 	}
+}
+
+__weak void Zone_Callback_CardRead(Wiegand_Channel_NumberTypeDef channel_id, uint8_t length, Wiegand_CardNumberTypeDef card_number)
+{
+//
+}
+
+__weak void Zone_Callback_KeyPress(Wiegand_Channel_NumberTypeDef channel_id, Zone_Keypress_KeyTypeDef key)
+{
+//
+}
+
+__weak void Zone_Callback_Tamper(Wiegand_Channel_NumberTypeDef channel_id)
+{
+//
 }

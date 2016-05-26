@@ -54,14 +54,13 @@ typedef struct
 } Zone_DataInputTypeDef;
 
 typedef uint16_t Zone_TimerTypeDef;
+typedef uint8_t Zone_IdTypeDef;
 
 typedef struct
 {
-	Zone_StateTypeDef state;
+	Zone_IdTypeDef id;
 
-	Zone_TimerTypeDef led_timer;
-	Zone_TimerTypeDef beep_timer;
-	Zone_TimerTypeDef open_timer;
+	Zone_StateTypeDef state;
 
 	Zone_TimerTypeDef tamper_timer;
 } Zone_ChannelTypeDef;

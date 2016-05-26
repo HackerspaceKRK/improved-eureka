@@ -56,7 +56,8 @@ uint8_t GPIO_To_Wiegand_Channel(uint16_t GPIO_Pin)
 	case D1_6_Pin:
 		return 6;
 	default:
-		return 0;
+		assert(0);
+		return 0; // never reached
 	}
 }
 
@@ -207,6 +208,6 @@ uint16_t GPIO_Pin_ForChannel(uint8_t channel, GPIO_Mapper_DeviceTypeDef device)
 
 void GPIO_Write_Channel(uint8_t channel_id, GPIO_Mapper_DeviceTypeDef device, GPIO_PinState state)
 {
-	HAL_GPIO_WritePin(GPIO_Port_ForChannel(channel_id, GPIO_MAPPER_BUZZER),
-			GPIO_Pin_ForChannel(channel_id, GPIO_MAPPER_BUZZER), GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIO_Port_ForChannel(channel_id, device),
+			GPIO_Pin_ForChannel(channel_id, device), state);
 }

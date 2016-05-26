@@ -98,7 +98,18 @@ void UART_Controller_Action_Reject(Wiegand_Channel_NumberTypeDef channel_id)
 	Zone_Reject(channel_id);
 }
 
-void UART_Controller_Action_Ping(Wiegand_Channel_NumberTypeDef channel_id)
+void UART_Controller_Action_Ping()
 {
 	UART_Controller_SendPong();
+}
+
+
+void UART_Controller_SendStart(void)
+{
+	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+}
+
+void UART_Controller_SendStop(void)
+{
+	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
 }
