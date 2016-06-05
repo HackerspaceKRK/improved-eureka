@@ -262,7 +262,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = D1_4_Pin|D0_4_Pin|D1_3_Pin|D0_2_Pin 
                           |D1_1_Pin|D1_6_Pin|D0_6_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED_5_Pin LED_4_Pin BUZZER_6_Pin BUZZER_5_Pin */
@@ -298,7 +298,7 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pins : D0_3_Pin D1_2_Pin */
   GPIO_InitStruct.Pin = D0_3_Pin|D1_2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : D0_1_Pin D1_0_Pin D0_0_Pin D1_5_Pin 
@@ -306,7 +306,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = D0_1_Pin|D1_0_Pin|D0_0_Pin|D1_5_Pin 
                           |D0_5_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : OPEN_6_Pin OPEN_0_Pin OPEN_1_Pin OPEN_2_Pin 
