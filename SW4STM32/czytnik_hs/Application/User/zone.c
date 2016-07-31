@@ -158,7 +158,7 @@ static void Zone_Process(uint8_t channel_id)
 }
 
 // called from interrupt
-void Zone_SysTickHandler()
+void Zone_SysTickHandler(void)
 {
 	if(! zone_configured)
 	{

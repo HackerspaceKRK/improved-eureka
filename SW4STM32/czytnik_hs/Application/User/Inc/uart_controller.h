@@ -56,7 +56,7 @@ void UART_Controller_Process(void);
 
 __weak void UART_Controller_Action_Accept(Wiegand_Channel_NumberTypeDef channel_id);
 __weak void UART_Controller_Action_Reject(Wiegand_Channel_NumberTypeDef channel_id);
-__weak void UART_Controller_Action_Ping();
+__weak void UART_Controller_Action_Ping(void);
 
 __weak void UART_Controller_SendStart(void);
 __weak void UART_Controller_SendStop(void);

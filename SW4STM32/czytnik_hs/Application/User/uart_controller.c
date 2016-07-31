@@ -243,7 +243,7 @@ __weak void UART_Controller_Action_Reject(Wiegand_Channel_NumberTypeDef channel_
 	//
 }
 
-__weak void UART_Controller_Action_Ping()
+__weak void UART_Controller_Action_Ping(void)
 {
 
 }
