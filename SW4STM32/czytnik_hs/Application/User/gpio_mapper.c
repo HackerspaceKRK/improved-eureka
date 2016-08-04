@@ -168,13 +168,13 @@ GPIO_TypeDef *GPIO_Port_ForChannel(uint8_t channel, GPIO_Mapper_DeviceTypeDef de
 	switch(device)
 	{
 	case GPIO_MAPPER_BUZZER:
-		return (GPIO_TypeDef *) GPIO_MAP_PORT_BUZZER[channel];
+		return GPIO_MAP_PORT_BUZZER[channel];
 	case GPIO_MAPPER_LED:
-		return (GPIO_TypeDef *) GPIO_MAP_PORT_LED[channel];
+		return GPIO_MAP_PORT_LED[channel];
 	case GPIO_MAPPER_OPEN:
-		return (GPIO_TypeDef *) GPIO_MAP_PORT_OPEN[channel];
+		return GPIO_MAP_PORT_OPEN[channel];
 	case GPIO_MAPPER_TAMPER:
-		return (GPIO_TypeDef *) GPIO_MAP_PORT_TAMPER[channel];
+		return GPIO_MAP_PORT_TAMPER[channel];
 
 	default:
 		assert(0);

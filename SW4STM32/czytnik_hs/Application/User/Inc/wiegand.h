@@ -23,10 +23,6 @@
 
 #include <stdint.h>
 
-// dynamically create channels
-//#define WIEGAND_DYNAMIC_CHANNELS
-
-// does not apply when WIEGAND_DYNAMIC_CHANNELS is enabled
 #define WIEGAND_MAX_CHANNELS 7
 
 #define WIEGAND_MAX_LENGTH 26
@@ -36,7 +32,7 @@
 
 typedef uint8_t Wiegand_Channel_NumberTypeDef;
 typedef uint32_t Wiegand_CardNumberTypeDef;
-#define Wiegand_CardNumberTypeDef_BITS_LENGTH 32
+#define WIEGAND_CARDNUMBER_BITS_LENGTH 32
 
 typedef struct {
 	Wiegand_Channel_NumberTypeDef channels_number;

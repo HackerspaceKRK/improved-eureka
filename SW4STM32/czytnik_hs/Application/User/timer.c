@@ -26,9 +26,6 @@
 static void Timer_InitTimerStruct(Timer_TimerTimerTypeDef *timer)
 {
 	timer->callback = 0;
-//	timer->tics = 0;
-//	timer->data = 0;
-
 	timer->next = 0;
 }
 

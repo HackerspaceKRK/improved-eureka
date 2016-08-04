@@ -66,7 +66,7 @@ Message_Queue_MessageTypeDef *Message_Queue_GetUsed(Message_Queue_MessageQueueTy
 	for (i = 0; i < MESSAGE_QUEUE_QUEUE_LENGTH; ++i) {
 		Message_Queue_MessageTypeDef *message = Message_Queue_Get(message_queue, i);
 
-		if(message->length) // not 0
+		if(message->length != 0)
 		{
 			return message;
 		}

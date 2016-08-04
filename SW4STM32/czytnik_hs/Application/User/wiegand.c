@@ -72,7 +72,6 @@ void Wiegand_Config(WiegandInitTypeDef *init_config)
 {
 	int i;
 
-//	wiegand_channels = (void*) malloc(sizeof(Wiegand_ChannelTypeDef) * init_config->channels_number);
 	assert(init_config->channels_number <= WIEGAND_MAX_CHANNELS);
 
 	wiegand_config.channels_number = init_config->channels_number;
@@ -182,7 +181,7 @@ void Wiegand_HandleTransmission(Wiegand_Channel_NumberTypeDef channel_id, uint8_
 	// later reverse it.. normally this would not be a problem (RBIT operand) but
 	// we are on Cortex-M0... it is faster to do it this way.. later we will only
 	// have to align data to the right
-	channel->buffer |= bit << (Wiegand_CardNumberTypeDef_BITS_LENGTH-1 - channel->position);
+	channel->buffer |= bit << (WIEGAND_CARDNUMBER_BITS_LENGTH-1 - channel->position);
 	channel->position++;
 	channel->last_read_timer = 0;
 }
@@ -240,7 +239,7 @@ void Wiegand_Process(void)
 		if(channel->ready && !channel->ready_clear)
 		{
 			// align data to right
-			channel->buffer >>= Wiegand_CardNumberTypeDef_BITS_LENGTH - channel->position;
+			channel->buffer >>= WIEGAND_CARDNUMBER_BITS_LENGTH - channel->position;
 
 			Wiegand_Channel_Call(channel);
 
